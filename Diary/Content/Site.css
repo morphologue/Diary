@@ -4,9 +4,10 @@
 }
 
 /* Set padding to keep content from hitting the edges */
-.body-content {
+.container {
     padding-left: 15px;
     padding-right: 15px;
+    max-width: 420px;
 }
 
 /* Override the default bootstrap behavior where horizontal description lists 
@@ -17,8 +18,20 @@
 }
 
 /* Set width on the form input elements since they're 100% wide by default */
-input,
+/*input,
 select,
 textarea {
     max-width: 280px;
+}*/
+
+.form-horizontal .control-label {
+    text-align: left;
+}
+
+.header > h3 {
+    margin: 0px;
+}
+
+.nav > li > a {
+    padding-top: 3px;
 }

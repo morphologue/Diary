@@ -22,7 +22,7 @@ namespace Diary.Models
     public class RegisterViewModel
     {
         [Required]
-        [Display(Name = "Display Name")]
+        [Display(Name = "Name")]
         public string DisplayName { get; set; }
 
         [Required]
@@ -37,7 +37,7 @@ namespace Diary.Models
         public string Password { get; set; }
 
         [DataType(DataType.Password)]
-        [Display(Name = "Confirm Password")]
+        [Display(Name = "Confirm")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
     }
