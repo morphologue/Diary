@@ -5,6 +5,10 @@ form {
     width: 10px;  /* Arbitrary small width. The real width will be set in Typescript. */
 }
 
+.form-control {
+    box-shadow: none;
+}
+
 #table_controls {
     margin-top: 15px;
     margin-bottom: 20px;

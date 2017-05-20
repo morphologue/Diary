@@ -1,5 +1,4 @@
 ﻿body {
-    padding-top: 50px;
     padding-bottom: 20px;
 }
 
@@ -42,9 +41,18 @@ footer {
     position: absolute;
 }
 
-/* On phones, hide the footer */
+/* On phones, hide the footer and reduce body padding. */
 @media (max-width: 767px) {
+    body {
+        padding-top: 20px;
+    }
     footer {
         display: none;
+    }
+}
+
+@media (min-width: 768px) {
+    body {
+        padding-top: 40px;
     }
 }
