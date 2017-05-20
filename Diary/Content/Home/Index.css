@@ -1,6 +1,8 @@
-﻿
+﻿/* CSS specific to Home/Index */
+
 form {
     display: inline-block;
+    width: 10px;  /* Arbitrary small width. The real width will be set in Typescript. */
 }
 
 #table_controls {
@@ -11,7 +13,7 @@ form {
 #table_controls .btn {
     border-radius: 50%;  /* Make the button a circle */
     margin-right: 3px;
-    vertical-align: baseline;
+    vertical-align: top;
 }
 
 #table_controls input {
