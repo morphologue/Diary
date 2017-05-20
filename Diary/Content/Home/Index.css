@@ -1,0 +1,31 @@
+﻿
+form {
+    display: inline-block;
+}
+
+#table_controls {
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+#table_controls .btn {
+    border-radius: 50%;  /* Make the button a circle */
+    margin-right: 3px;
+    vertical-align: baseline;
+}
+
+#table_controls input {
+    border-radius: 10px;
+}
+
+/* On phones the target div should overflow so that the whole document scrolled, but on desktop the div itself should scroll. */
+@media (max-width: 767px) {
+    #table_target {
+        overflow: visible;
+    }
+}
+@media (min-width: 768px) {
+    #table_target {
+        overflow: auto;
+    }
+}

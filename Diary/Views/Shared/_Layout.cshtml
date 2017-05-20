@@ -13,20 +13,21 @@
     }
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
+    @RenderSection("head", required: false)
 </head>
 <body>
-    <div class="container">
+    <div class="@(ViewBag.Unchained ?? false ? "container unchained" : "container")">
         <div class="header clearfix">
             <nav>
                 <ul class="nav nav-pills pull-right">
                     @Html.Partial("_LoginPartial")
                 </ul>
             </nav>
-            <h3 class="text-muted">Diary</h3>
+            @Html.ActionLink("Diary", "Index", "Home", routeValues: null, htmlAttributes: new { @class = "h3" })
         </div>
         @RenderBody()
-        <hr />
         <footer>
+            <hr>
             <p>Created by <a href="https://gavin-tech.com/">Gavin Heise</a></p>
         </footer>
     </div>
@@ -38,6 +39,7 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/Scripts/ts_compiled/Site.js")
     @RenderSection("scripts", required: false)
 </body>
 </html>

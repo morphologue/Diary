@@ -1,1 +1,21 @@
-﻿<p>Hello World</p>
+﻿@{ 
+    // Make the container holding all the content be able to grow widely
+    ViewBag.Unchained = true;
+}
+
+@section head {
+    @* Styles specific to this page *@
+    @Styles.Render("~/Content/Home/Index.css")
+}
+
+<div id="table_controls">
+    <button href="javascript:;" class="btn btn-default">+</button>
+    <form>
+        <input type="search" class="form-control" placeholder="Search" />
+    </form>
+</div>
+<div id="table_target"></div>
+
+@section scripts {
+    @Scripts.Render("~/Scripts/ts_compiled/Home/Index.js")
+}

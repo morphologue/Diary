@@ -7,31 +7,44 @@
 .container {
     padding-left: 15px;
     padding-right: 15px;
+}
+
+/* Also limit the width of containers unless they are also .unchained */
+.container:not(.unchained) {
     max-width: 420px;
 }
 
-/* Override the default bootstrap behavior where horizontal description lists 
-   will truncate terms that are too long to fit in the left column 
-*/
+/* Override the default bootstrap behavior where horizontal description lists will truncate terms that are too long to fit in the left column */
 .dl-horizontal dt {
     white-space: normal;
+    text-align: left;
+    width: 120px;
 }
 
-/* Set width on the form input elements since they're 100% wide by default */
-/*input,
-select,
-textarea {
-    max-width: 280px;
-}*/
+.dl-horizontal dd {
+    margin-left: 0;
+}
 
 .form-horizontal .control-label {
     text-align: left;
 }
 
 .header > h3 {
-    margin: 0px;
+    margin: 0;
 }
 
 .nav > li > a {
     padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+footer {
+    position: absolute;
+}
+
+/* On phones, hide the footer */
+@media (max-width: 767px) {
+    footer {
+        display: none;
+    }
 }
