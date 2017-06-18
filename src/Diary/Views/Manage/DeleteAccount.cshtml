@@ -1,0 +1,15 @@
+﻿@{
+    ViewBag.Title = "Delete Account";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<p>Are you sure you want to delete your account? This action cannot be reversed.</p>
+
+@using (Html.BeginForm("DeleteAccount", "Manage", FormMethod.Post))
+{
+    <div class="form-group">
+        <input type="submit" value="Confirm Delete" class="btn btn-danger" />
+    </div>
+}
+<p>@Html.ActionLink("Return home", "Index", "Home")</p>

@@ -1,0 +1,68 @@
+﻿body {
+    padding-bottom: 20px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.container {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Also limit the width of containers unless they are also .unchained */
+.container:not(.unchained) {
+    max-width: 420px;
+}
+
+/* Override the default bootstrap behavior where horizontal description lists will truncate terms that are too long to fit in the left column */
+.dl-horizontal dt {
+    white-space: normal;
+    text-align: left;
+    width: 120px;
+}
+
+.dl-horizontal dd {
+    margin-left: 0;
+}
+
+.form-horizontal .control-label {
+    text-align: left;
+}
+
+.header > h3 {
+    margin: 0;
+}
+
+.nav > li > a {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+footer {
+    position: absolute;
+}
+
+/* Stop ugly inner shadow on Safari */
+input[type="text"], input[type="search"], input[type="password"], input[type="email"] {
+    -webkit-appearance: none;
+}
+
+/* Make header link the same colour as other links. */
+#HomeLink {
+    color: #337ab7;
+}
+
+/* On phones, hide the footer and reduce body padding. */
+@media (max-width: 767px) {
+    body {
+        padding-top: 20px;
+    }
+    footer {
+        display: none;
+    }
+}
+
+@media (min-width: 768px) {
+    body {
+        padding-top: 40px;
+    }
+}

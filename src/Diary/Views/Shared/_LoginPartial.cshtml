@@ -1,0 +1,21 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Diary.Models
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <li role="presentation">
+        @Html.ActionLink("Manage", "Index", "Manage", routeValues: null, htmlAttributes: new { title = "Manage" })
+    </li>
+    <li role="presentation"><a href="javascript:document.getElementById('logoutForm').submit()">Log out</a></li>
+}
+else
+{
+    if (ViewBag.SuppressLoginNavLink == null || !ViewBag.SuppressLoginNavLink)
+    {
+        <li role="presentation">@Html.ActionLink("Log in", "Login", "Account")</li>
+    }
+    <li role="presentation">@Html.ActionLink("Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" })</li>
+}

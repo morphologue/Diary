@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "target": "es5",
+    "module": "none",
+    "outDir": "wwwroot/js",
+    "typeRoots": [ "TypeScript/Typings" ],
+    "types": ["jquery", "bootstrap", "tinymce", "jqueryui"]
+  },
+  "include": ["TypeScript/**/*"]
+}
