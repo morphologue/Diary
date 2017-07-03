@@ -44,7 +44,7 @@ namespace Diary
         {
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                options.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -89,8 +89,7 @@ namespace Diary
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
                 app.UseBrowserLink();
-            }
-            else
+            } else
             {
                 app.UseExceptionHandler("/Home/Error");
             }
@@ -105,7 +104,7 @@ namespace Diary
             {
                 routes.MapRoute(
                     name: "default",
-                    template: Configuration["url_path_prefix"] + "/{controller=Home}/{action=Index}/{id?}");
+                    template: (Configuration["url_path_prefix"] ?? "") + "/{controller=Home}/{action=Index}/{id?}");
             });
         }
     }
