@@ -1,24 +1,96 @@
-﻿// Configure bundling and minification for the project.
-// More info at https://go.microsoft.com/fwlink/?LinkId=808241
-[
+﻿[
+  // Minified (production) bundles
   {
-    "outputFileName": "wwwroot/css/site.min.css",
-    // An array of relative input file paths. Globbing patterns supported
+    "outputFileName": "wwwroot/bundle/layout.min.css",
     "inputFiles": [
-      "wwwroot/css/site.css"
+      "wwwroot/lib/bootstrap/dist/css/bootstrap.css",
+      "wwwroot/css/Site.css"
     ]
   },
   {
-    "outputFileName": "wwwroot/js/site.min.js",
+    "outputFileName": "wwwroot/bundle/index.min.css",
     "inputFiles": [
-      "wwwroot/js/site.js"
+      "wwwroot/lib/bootstrap/dist/css/bootstrap.css",
+      "wwwroot/css/Site.css",
+      "wwwroot/css/Home/Index.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/bundle/layout.min.js",
+    "inputFiles": [
+      "wwwroot/lib/jquery/dist/jquery.js",
+      "wwwroot/lib/bootstrap/dist/js/bootstrap.js",
+      "wwwroot/js/Site.js"
     ],
-    // Optionally specify minification options
     "minify": {
       "enabled": true,
       "renameLocals": true
+    }
+  },
+  {
+    "outputFileName": "wwwroot/bundle/index.min.js",
+    "inputFiles": [
+      "wwwroot/lib/jquery/dist/jquery.js",
+      "wwwroot/lib/bootstrap/dist/js/bootstrap.js",
+      "wwwroot/js/Site.js",
+      "wwwroot/lib/tinymce/tinymce.js",
+      "wwwroot/js/Home/Index.js",
+      "wwwroot/js/Home/EntryDialog.js",
+      "wwwroot/js/Home/Util.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    }
+  },
+
+  // Development bundles which are only concatenated, not minified
+  {
+    "outputFileName": "wwwroot/bundle/layout.css",
+    "inputFiles": [
+      "wwwroot/lib/bootstrap/dist/css/bootstrap.css",
+      "wwwroot/css/Site.css"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  },
+  {
+    "outputFileName": "wwwroot/bundle/index.css",
+    "inputFiles": [
+      "wwwroot/lib/bootstrap/dist/css/bootstrap.css",
+      "wwwroot/css/Site.css",
+      "wwwroot/css/Home/Index.css"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  },
+  {
+    "outputFileName": "wwwroot/bundle/layout.js",
+    "inputFiles": [
+      "wwwroot/lib/jquery/dist/jquery.js",
+      "wwwroot/lib/bootstrap/dist/js/bootstrap.js",
+      "wwwroot/js/Site.js"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  },
+  {
+    "outputFileName": "wwwroot/bundle/index.js",
+    "inputFiles": [
+      "wwwroot/lib/jquery/dist/jquery.js",
+      "wwwroot/lib/bootstrap/dist/js/bootstrap.js",
+      "wwwroot/js/Site.js",
+      "wwwroot/lib/tinymce/tinymce.js",
+      "wwwroot/js/Home/Index.js",
+      "wwwroot/js/Home/EntryDialog.js",
+      "wwwroot/js/Home/Util.js"
+    ],
+    "minify": {
+      "enabled": false
     },
-    // Optinally generate .map file
-    "sourceMap": false
+    "sourceMap": true
   }
 ]
