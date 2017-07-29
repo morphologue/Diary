@@ -1,10 +1,10 @@
-﻿/* tslint:disable comment-format */
+﻿import $ = require('jquery');
 
 /* The state of a modal dialog which can be opened via the show() method. All instances of this class rely
    on the same div from Index.cshtml, which is ok because only one modal dialog can be shown at once. The
    DOM is updated only when show() is called.
 */
-class EntryDialog {
+export default class EntryDialog {
     // The following properties determine what is shown when show() is called. After the dialog has been
     // closed, these properties will reflect the final state of the dialog.
     isEditable: boolean;

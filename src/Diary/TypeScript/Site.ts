@@ -1,4 +1,4 @@
-﻿/* tslint:disable comment-format */
+﻿import $ = require('jquery');
 
 function makeFooterResizer(): () => void {
     // Pixels to reserve under the footer, i.e. at the bottom of the window

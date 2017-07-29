@@ -5,10 +5,8 @@
     "removeComments": false,
     "sourceMap": true,
     "target": "es5",
-    "module": "none",
-    "outDir": "wwwroot/js",
-    "typeRoots": [ "TypeScript/Typings" ],
-    "types": ["jquery", "bootstrap", "tinymce", "jqueryui"]
+    "module": "commonjs",
+    "typeRoots": [ "TypeScript/Typings" ]
   },
   "include": ["TypeScript/**/*"]
 }

@@ -3,24 +3,24 @@
   {
     "outputFileName": "wwwroot/bundle/layout.min.css",
     "inputFiles": [
-      "wwwroot/lib/bootstrap/dist/css/bootstrap.css",
-      "wwwroot/css/Site.css"
+      "node_modules/bootstrap/dist/css/bootstrap.css",
+      "Css/Site.css"
     ]
   },
   {
     "outputFileName": "wwwroot/bundle/index.min.css",
     "inputFiles": [
-      "wwwroot/lib/bootstrap/dist/css/bootstrap.css",
-      "wwwroot/css/Site.css",
-      "wwwroot/css/Home/Index.css"
+      "node_modules/bootstrap/dist/css/bootstrap.css",
+      "Css/Site.css",
+      "Css/Home/Index.css"
     ]
   },
   {
     "outputFileName": "wwwroot/bundle/layout.min.js",
     "inputFiles": [
-      "wwwroot/lib/jquery/dist/jquery.js",
-      "wwwroot/lib/bootstrap/dist/js/bootstrap.js",
-      "wwwroot/js/Site.js"
+      "node_modules/jquery/dist/jquery.js",
+      "node_modules/bootstrap/dist/js/bootstrap.js",
+      "TypeScript/Site.js"
     ],
     "minify": {
       "enabled": true,
@@ -30,13 +30,13 @@
   {
     "outputFileName": "wwwroot/bundle/index.min.js",
     "inputFiles": [
-      "wwwroot/lib/jquery/dist/jquery.js",
-      "wwwroot/lib/bootstrap/dist/js/bootstrap.js",
-      "wwwroot/js/Site.js",
-      "wwwroot/lib/tinymce/tinymce.js",
-      "wwwroot/js/Home/Index.js",
-      "wwwroot/js/Home/EntryDialog.js",
-      "wwwroot/js/Home/Util.js"
+      "node_modules/jquery/dist/jquery.js",
+      "node_modules/bootstrap/dist/js/bootstrap.js",
+      "node_modules/tinymce/tinymce.js",
+      "TypeScript/Site.js",
+      "TypeScript/Home/Index.js",
+      "TypeScript/Home/EntryDialog.js",
+      "TypeScript/Home/Util.js"
     ],
     "minify": {
       "enabled": true,
@@ -48,8 +48,8 @@
   {
     "outputFileName": "wwwroot/bundle/layout.css",
     "inputFiles": [
-      "wwwroot/lib/bootstrap/dist/css/bootstrap.css",
-      "wwwroot/css/Site.css"
+      "node_modules/bootstrap/dist/css/bootstrap.css",
+      "Css/Site.css"
     ],
     "minify": {
       "enabled": false
@@ -58,9 +58,9 @@
   {
     "outputFileName": "wwwroot/bundle/index.css",
     "inputFiles": [
-      "wwwroot/lib/bootstrap/dist/css/bootstrap.css",
-      "wwwroot/css/Site.css",
-      "wwwroot/css/Home/Index.css"
+      "node_modules/bootstrap/dist/css/bootstrap.css",
+      "Css/Site.css",
+      "Css/Home/Index.css"
     ],
     "minify": {
       "enabled": false
@@ -69,9 +69,9 @@
   {
     "outputFileName": "wwwroot/bundle/layout.js",
     "inputFiles": [
-      "wwwroot/lib/jquery/dist/jquery.js",
-      "wwwroot/lib/bootstrap/dist/js/bootstrap.js",
-      "wwwroot/js/Site.js"
+      "node_modules/jquery/dist/jquery.js",
+      "node_modules/bootstrap/dist/js/bootstrap.js",
+      "TypeScript/Site.js"
     ],
     "minify": {
       "enabled": false
@@ -80,13 +80,13 @@
   {
     "outputFileName": "wwwroot/bundle/index.js",
     "inputFiles": [
-      "wwwroot/lib/jquery/dist/jquery.js",
-      "wwwroot/lib/bootstrap/dist/js/bootstrap.js",
-      "wwwroot/js/Site.js",
-      "wwwroot/lib/tinymce/tinymce.js",
-      "wwwroot/js/Home/Index.js",
-      "wwwroot/js/Home/EntryDialog.js",
-      "wwwroot/js/Home/Util.js"
+      "node_modules/jquery/dist/jquery.js",
+      "node_modules/bootstrap/dist/js/bootstrap.js",
+      "node_modules/tinymce/tinymce.js",
+      "TypeScript/Site.js",
+      "TypeScript/Home/Index.js",
+      "TypeScript/Home/EntryDialog.js",
+      "TypeScript/Home/Util.js"
     ],
     "minify": {
       "enabled": false

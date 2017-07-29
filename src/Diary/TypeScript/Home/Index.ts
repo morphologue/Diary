@@ -1,9 +1,10 @@
-﻿/* tslint:disable comment-format */
+﻿import $ = require('jquery');
+import EntryDialog from './EntryDialog';
 
 function makeTableResizer(): () => void {
     // Search box should not shrink below this.
     const MIN_WIDTH = 10;
-    
+
     // Leave this space at the right, which matches the right padding on the nav pills, so that the
     // search box lines up with the rightmost pill.
     const MARGIN_RIGHT = 15;
