@@ -3,11 +3,20 @@
     ViewBag.Unchained = true;
 
     // Pull in the extra CSS and Javascript which is needed for this page.
-    ViewBag.BundlePrefix = "index";
+    ViewBag.BundlePrefix = "Index";
 }
 
+@section head {
+    @* It's way too hard to get tinymce's CSS to work with Webpack. *@
+    <link rel="stylesheet" href="~/tinymce/skins/lightgray/content.min.css">
+    <link rel="stylesheet" href="~/tinymce/skins/lightgray/skin.min.css">
+}
+
+@* The guts of the view are all generated on the client via React. *@
+<div id="react-root"></div>
+
 @* Diary entry view/edit modal *@
-<div class="modal fade" tabindex="-1" role="dialog">
+@*<div class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -40,4 +49,4 @@
     <button href="javascript:;" class="btn btn-default">+</button>
     <input type="search" class="form-control" placeholder="Search">
 </div>
-<div id="table_target"></div>
+<div id="table_target"></div>*@

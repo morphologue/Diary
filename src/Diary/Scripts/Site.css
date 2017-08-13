@@ -1,4 +1,6 @@
-﻿body {
+﻿@import url("../node_modules/bootstrap/dist/css/bootstrap.min.css");
+
+body {
     padding-bottom: 20px;
 }
 

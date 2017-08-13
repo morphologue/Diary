@@ -243,5 +243,9 @@ ModelManifest.xml
 /src/Diary/wwwroot/bundle
 
 # JS generated from TypeScript
-**/TypeScript/**/*.js
-**/TypeScript/**/*.js.map
+**/Scripts/**/*.js
+**/Scripts/**/*.js.map
+/src/Diary/wwwroot/binary
+/src/Diary/wwwroot/skins
+/src/Diary/wwwroot/*.js
+/src/Diary/wwwroot/*.js.map

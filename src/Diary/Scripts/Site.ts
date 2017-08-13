@@ -1,6 +1,8 @@
 ﻿import $ = require('jquery');
+(window as any).jQuery = (window as any).$ = $;  // Export jQuery globally for Bootstrap's benefit.
+import '../node_modules/bootstrap/dist/js/bootstrap.js';
 
-function makeFooterResizer(): () => void {
+$((): void => {
     // Pixels to reserve under the footer, i.e. at the bottom of the window
     const MARGIN_BOTTOM = 20;
 
@@ -19,7 +21,8 @@ function makeFooterResizer(): () => void {
     // Distance from the bottom of the window to position the footer
     let static_height = $footer.height() + MARGIN_BOTTOM;
 
-    return (): void => {
+    // Install the resizer and run it.
+    let resizer = (): void => {
         if ($footer.css("display") === "none")
             // The footer will be hidden on mobiles, so there's no point resizing.
             return;
@@ -28,11 +31,6 @@ function makeFooterResizer(): () => void {
         $footer.css("top", (new_top > MIN_TOP ? new_top : MIN_TOP) + "px");
         $footer.width($container.width() - MARGIN_RIGHT);
     };
-}
-
-$((): void => {
-    // Install the resizer when the document has loaded.
-    let resizer = makeFooterResizer();
     $(window).resize(resizer);
     resizer();
 });

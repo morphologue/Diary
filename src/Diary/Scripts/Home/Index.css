@@ -1,4 +1,6 @@
-﻿/* CSS specific to Home/Index */
+﻿@import url("../Site.css");
+
+/* CSS specific to Home/Index */
 
 #table_controls > input {
     display: inline-block;

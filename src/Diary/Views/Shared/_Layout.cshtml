@@ -12,14 +12,10 @@
         <title>@($"Diary - {ViewBag.Title}")</title>
     }
     
-    <environment names="Development">
-        <link rel="stylesheet" href="~/bundle/@(ViewBag.BundlePrefix ?? "layout").css" />
-    </environment>
-    <environment names="Staging,Production">
-        <link rel="stylesheet" href="~/bundle/@(ViewBag.BundlePrefix ?? "layout").min.css" />
-    </environment>
-    
     @RenderSection("head", required: false)
+
+    @* This goes in head because it will load in all of our CSS, and we don't want unstyled elements to be shown. *@
+    <script src="~/@(ViewBag.BundlePrefix ?? "Site").js"></script>
 </head>
 <body>
     <div class="container@(ViewBag.Unchained ?? false ? " unchained" : "")">
@@ -39,13 +35,6 @@
     </div>
 
     @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm" })) { }
-
-    <environment names="Development">
-        <script src="~/bundle/@(ViewBag.BundlePrefix ?? "layout").js"></script>
-    </environment>
-    <environment names="Staging,Production">
-        <script src="~/bundle/@(ViewBag.BundlePrefix ?? "layout").min.js"></script>
-    </environment>
 
     @RenderSection("scripts", required: false)
 </body>

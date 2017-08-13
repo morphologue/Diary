@@ -3,13 +3,29 @@
 	"name": "asp.net",
 	"private": true,
   "devDependencies": {
+    "@types/bootstrap": "^3",
+    "@types/jquery": "*",
+    "@types/tinymce": "^4",
+    "@types/react": "^15",
+    "@types/react-dom": "^15",
+    "webpack": "^3",
+    "webpack-notifier": "*",
+    "style-loader": "*",
+    "css-loader": "*",
+    "file-loader": "*",
+    "awesome-typescript-loader": "*",
+    "source-map-loader": "*",
+    "source-map": "*",
+    "typescript": "^2"
   },
   "dependencies": {
-    "bootstrap": "^3.x",
+    "react": "^15",
+    "react-dom": "^15",
+    "bootstrap": "^3",
     "jquery": "*",
     "jquery-validation": "*",
     "jquery-validation-unobtrusive": "*",
-    "tinymce": "^4.x",
-    "react": "^15.x"
+    "tinymce": "^4",
+    "react-tinymce": "*"
   }
 }
