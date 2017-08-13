@@ -9,10 +9,7 @@
     <UserSecretsId>aspnet-Diary-f49230fa-974f-441d-8c96-6f4365def7c7</UserSecretsId>
     <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>
     <PackageTargetFallback>$(PackageTargetFallback);dotnet5.6;portable-net45+win8</PackageTargetFallback>
-    <PostBuildEvent>robocopy C:\Users\thega\Source\Repos\Diary\src\Diary\node_modules\tinymce\skins C:\Users\thega\Source\Repos\Diary\src\Diary\wwwroot\skins /MIR
-robocopy C:\Users\thega\Source\Repos\Diary\src\Diary\binary C:\Users\thega\Source\Repos\Diary\src\Diary\wwwroot\binary /MIR /MOVE
-exit /b 0
-</PostBuildEvent>
+    <PostBuildEvent></PostBuildEvent>
   </PropertyGroup>
 
   <ItemGroup>
@@ -69,6 +66,9 @@ exit /b 0
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Scripts\Home\Diary.js">
+      <DependentUpon>Diary.tsx</DependentUpon>
+    </None>
     <None Update="TypeScript\Home\Diary.js">
       <DependentUpon>Diary.tsx</DependentUpon>
     </None>

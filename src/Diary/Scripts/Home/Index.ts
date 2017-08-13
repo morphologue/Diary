@@ -2,9 +2,16 @@
 import React = require('react');
 import ReactDOM = require('react-dom');
 import Diary = require('./Diary');
+import '../Site';
+
+// Make TinyMCE work with Webpack, ergh :(
 import 'tinymce/tinymce';
 import 'tinymce/themes/modern';
-import '../Site';
+(require as any).context(
+    'file-loader?name=[path][name].[ext]&context=node_modules/tinymce!tinymce/skins',
+    true,
+    /.*/
+);
 
 $((): void => {
     //// Search box should not shrink below this.

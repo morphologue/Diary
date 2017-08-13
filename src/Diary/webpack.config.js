@@ -10,7 +10,8 @@ module.exports = {
         Index: ['./Scripts/Home/Index.ts', './Scripts/Home/Index.css']
     },
     output: {
-        filename: './wwwroot/[Name].js'
+        path: __dirname + '/wwwroot',
+        filename: '[Name].js'
     },
     devtool: 'source-map',
     resolve: {
@@ -20,6 +21,7 @@ module.exports = {
         rules: [
             {
                 test: /\.(ttf|eot|woff|woff2|svg|gif)$/,
+                exclude: /tinymce\\skins\\/,
                 loader: 'file-loader',
                 options: {
                     name: 'binary/[name].[ext]'
@@ -27,6 +29,7 @@ module.exports = {
             },
             {
                 test: /\.css$/,
+                exclude: /tinymce\\skins\\/,
                 use: ['style-loader', 'css-loader']
             },
             {
@@ -45,8 +48,9 @@ module.exports = {
         new WebpackNotifier()
     ].concat(PROD ? [
         new Webpack.optimize.UglifyJsPlugin({
+            sourceMap: true,
             output: {
-                sourceMap: true
+                ascii_only: true
             }
         })
     ] : [])
