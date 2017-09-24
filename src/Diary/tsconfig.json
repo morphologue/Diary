@@ -3,11 +3,12 @@
     "noImplicitAny": true,
     "noEmitOnError": true,
     "removeComments": false,
+    "strictNullChecks": true,
     "sourceMap": true,
     "target": "es5",
     "module": "commonjs",
     "jsx": "react",
-    "typeRoots": [ "node_modules/@types", "Scripts/CustomTypings" ]
+    "typeRoots": [ "node_modules/@types" ]
   },
   "include": ["Scripts/*", "Scripts/Home/*"]
 }

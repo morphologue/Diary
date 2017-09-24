@@ -6,8 +6,8 @@ var PROD = process.env.NODE_ENV === 'production';
 
 module.exports = {
     entry: {
-        Site: ['./Scripts/Site.ts', './Scripts/Site.css'],
-        Index: ['./Scripts/Home/Index.ts', './Scripts/Home/Index.css']
+        Site: ['./Scripts/Site.ts'],
+        Index: ['./Scripts/Home/Index.ts']
     },
     output: {
         path: __dirname + '/wwwroot',

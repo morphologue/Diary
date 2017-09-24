@@ -1,13 +1,14 @@
 {
-	"version": "1.0.0",
-	"name": "asp.net",
-	"private": true,
+  "version": "1.0.0",
+  "name": "asp.net",
+  "private": true,
   "devDependencies": {
     "@types/bootstrap": "^3",
-    "@types/jquery": "*",
+    "@types/jquery": "^2",
     "@types/tinymce": "^4",
     "@types/react": "^15",
     "@types/react-dom": "^15",
+    "@types/react-mce": "^0.6",
     "webpack": "^3",
     "webpack-notifier": "*",
     "style-loader": "*",
@@ -26,6 +27,6 @@
     "jquery-validation": "*",
     "jquery-validation-unobtrusive": "*",
     "tinymce": "^4",
-    "react-tinymce": "*"
+    "react-mce": "^0.6.1"
   }
 }

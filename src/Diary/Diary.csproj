@@ -69,6 +69,18 @@
     <None Update="Scripts\Home\Diary.js">
       <DependentUpon>Diary.tsx</DependentUpon>
     </None>
+    <None Update="Scripts\Home\EntryDialog.js">
+      <DependentUpon>EntryDialog.tsx</DependentUpon>
+    </None>
+    <None Update="Scripts\Home\EntryTable.js">
+      <DependentUpon>EntryTable.tsx</DependentUpon>
+    </None>
+    <None Update="Scripts\Home\SearchBar.js">
+      <DependentUpon>SearchBar.tsx</DependentUpon>
+    </None>
+    <None Update="Scripts\Site.css">
+      <DependentUpon>Site.ts</DependentUpon>
+    </None>
     <None Update="TypeScript\Home\Diary.js">
       <DependentUpon>Diary.tsx</DependentUpon>
     </None>

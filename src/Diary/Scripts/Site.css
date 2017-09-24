@@ -1,4 +1,4 @@
-﻿@import url("../node_modules/bootstrap/dist/css/bootstrap.min.css");
+﻿@import url('../node_modules/bootstrap/dist/css/bootstrap.min.css');
 
 body {
     padding-bottom: 20px;
@@ -26,12 +26,13 @@ body {
     margin-left: 0;
 }
 
-.form-horizontal .control-label {
-    text-align: left;
-}
-
 .header > h3 {
     margin: 0;
+}
+
+/* Make all the header links the same colour. */
+.header a {
+    color: #337ab7;
 }
 
 .nav > li > a {
@@ -41,16 +42,13 @@ body {
 
 footer {
     position: absolute;
+    margin-bottom: 20px;
+    padding-right: 15px;
 }
 
 /* Stop ugly inner shadow on Safari */
 input[type="text"], input[type="search"], input[type="password"], input[type="email"] {
     -webkit-appearance: none;
-}
-
-/* Make header link the same colour as other links. */
-#HomeLink {
-    color: #337ab7;
 }
 
 /* On phones, hide the footer and reduce body padding. */
