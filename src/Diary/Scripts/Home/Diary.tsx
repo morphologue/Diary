@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { SearchBar } from './SearchBar';
 import { EntryTable } from './EntryTable';
-import { EntryDialogView, EntryDialogEdit } from './EntryDialog';
+import { EntryDialog } from './EntryDialog';
 
 export interface Entry {
     title: string,
@@ -16,7 +16,7 @@ enum DialogState { Closed, View, Edit };
 interface State {
     height: number | null,
     dialogState: DialogState,
-    selectedEntry: Entry | null
+    selectedEntry?: Entry
 }
 
 // This is the top-level component which controls the layout of the app: search bar above entry table.
@@ -25,8 +25,7 @@ export class Diary extends React.Component<{}, State> {
         super();
         this.state = {
             height: null,
-            dialogState: DialogState.Closed,
-            selectedEntry: null
+            dialogState: DialogState.Closed
         };
     }
 
@@ -39,9 +38,9 @@ export class Diary extends React.Component<{}, State> {
                 {((): JSX.Element | undefined => {
                     switch (this.state.dialogState) {
                         case DialogState.View:
-                            return <EntryDialogView entry={this.state.selectedEntry} onClose={() => this.handleDialogClose()} />
+                            return <EntryDialog editable={false} entry={this.state.selectedEntry} onClose={() => this.handleDialogClose()} />
                         case DialogState.Edit:
-                            return <EntryDialogEdit entry={this.state.selectedEntry} onClose={() => this.handleDialogClose()}/>
+                            return <EntryDialog editable={true} entry={this.state.selectedEntry} onClose={() => this.handleDialogClose()}/>
                     }
                 })()}
             </div>

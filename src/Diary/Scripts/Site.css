@@ -40,6 +40,11 @@ body {
     padding-bottom: 3px;
 }
 
+/* Put some space above the forgotten password link. */
+.forgotten {
+    margin-top: 2em;
+}
+
 footer {
     position: absolute;
     margin-bottom: 20px;
