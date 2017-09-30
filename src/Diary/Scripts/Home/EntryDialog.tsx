@@ -58,7 +58,6 @@ export class EntryDialog extends React.PureComponent<Props> {
                         <div className="modal-body">
                             <div className="form-group">
                                 <label>Date&nbsp;</label>
-                                {this.props.editable && <label className="error text-danger" htmlFor="date"></label>}
                                 {
                                     this.props.editable ?
                                         <input type="text" name="date" className="form-control" value={this.props.entry.date}
@@ -124,13 +123,10 @@ export class EntryDialog extends React.PureComponent<Props> {
         let $form = $(this.refs.form);
 
         this.validator = $form.validate({
-            messages: {
-                date: {
-                    required: '',
-                    pattern: '- YYYY-MM-DD'
-                }
+            rules: {
+                date: { dateISO: true }
             },
-            errorPlacement: () => { },  // Only use the error label we've created explicitly.
+            errorPlacement: () => { },  // Don't create error labels.
             highlight: elem => $(elem).closest('.form-group').addClass('has-error'),
             unhighlight: elem => $(elem).closest('.form-group').removeClass('has-error'),
             submitHandler: () => this.props.onClose()
