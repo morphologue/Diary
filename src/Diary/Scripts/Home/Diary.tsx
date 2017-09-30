@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { SearchBar } from './SearchBar';
 import { EntryTable } from './EntryTable';
-import { EntryDialog } from './EntryDialog';
+import { EntryModal } from './EntryModal';
 
 export interface Entry {
     title: string,
@@ -11,11 +11,11 @@ export interface Entry {
     body: string
 }
 
-enum DialogState { Closed, View, Edit };
+enum ModalState { Closed, View, Edit };
 
 interface State {
     height: number | null,
-    dialogState: DialogState,
+    dialogState: ModalState,
     selectedEntry?: Entry
 }
 
@@ -25,7 +25,7 @@ export class Diary extends React.Component<{}, State> {
         super();
         this.state = {
             height: null,
-            dialogState: DialogState.Closed
+            dialogState: ModalState.Closed
         };
     }
 
@@ -37,10 +37,11 @@ export class Diary extends React.Component<{}, State> {
                 <EntryTable height={this.state.height} />
                 {((): JSX.Element | undefined => {
                     switch (this.state.dialogState) {
-                        case DialogState.View:
-                            return <EntryDialog editable={false} entry={this.state.selectedEntry} onClose={() => this.handleDialogClose()} />
-                        case DialogState.Edit:
-                            return <EntryDialog editable={true} entry={this.state.selectedEntry} onClose={() => this.handleDialogClose()}/>
+                        case ModalState.View:
+                            return <EntryModal editable={false} initialEntry={this.state.selectedEntry} onClosed={() => this.handleDialogClose()} onEdit={() => this.handleDialogEdit()} />
+                        case ModalState.Edit:
+                            return <EntryModal editable={true} initialEntry={this.state.selectedEntry} onClosed={() => this.handleDialogClose()}
+                                onApply={edited => this.handleDialogApply(edited)} onDelete={() => this.handleDialogDelete()} />
                     }
                 })()}
             </div>
@@ -66,13 +67,32 @@ export class Diary extends React.Component<{}, State> {
 
     private handleAddButtonClick(): void {
         this.setState({
-            dialogState: DialogState.Edit
+            dialogState: ModalState.Edit,
+            selectedEntry: undefined
         });
     }
 
     private handleDialogClose(): void {
         this.setState({
-            dialogState: DialogState.Closed
+            dialogState: ModalState.Closed
+        });
+    }
+
+    private handleDialogEdit(): void {
+        this.setState({
+            dialogState: ModalState.Edit
+        });
+    }
+
+    private handleDialogApply(edited: Entry): void {
+        this.setState({
+            selectedEntry: edited
+        });
+    }
+
+    private handleDialogDelete(): void {
+        this.setState({
+            selectedEntry: undefined
         });
     }
 }

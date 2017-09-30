@@ -5,6 +5,8 @@
   "devDependencies": {
     "@types/bootstrap": "^3",
     "@types/jquery": "^2",
+    "@types/jquery.validation": "*",
+    "@types/jqueryui": "*",
     "@types/tinymce": "^4",
     "@types/react": "^15",
     "@types/react-dom": "^15",
@@ -25,7 +27,7 @@
     "bootstrap": "^3",
     "jquery": "*",
     "jquery-validation": "*",
-    "jquery-validation-unobtrusive": "*",
+    "jquery-ui": "*",
     "tinymce": "^4",
     "react-mce": "^0.6.1"
   }
