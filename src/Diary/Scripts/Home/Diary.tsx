@@ -14,7 +14,7 @@ export interface Entry {
 enum ModalState { Closed, View, Edit };
 
 interface State {
-    height: number | null,
+    tableHeight: number | null,
     dialogState: ModalState,
     selectedEntry?: Entry
 }
@@ -24,7 +24,7 @@ export class Diary extends React.Component<{}, State> {
     constructor() {
         super();
         this.state = {
-            height: null,
+            tableHeight: null,
             dialogState: ModalState.Closed
         };
     }
@@ -34,11 +34,12 @@ export class Diary extends React.Component<{}, State> {
             <div style={{ marginTop: 20 }} >
                 <SearchBar onAddButtonClick={() => this.handleAddButtonClick()} />
                 <div ref="stretchableTop" style={{ marginTop: 15 }} />
-                <EntryTable height={this.state.height} />
+                <EntryTable height={this.state.tableHeight} />
                 {((): JSX.Element | undefined => {
                     switch (this.state.dialogState) {
                         case ModalState.View:
-                            return <EntryModal editable={false} initialEntry={this.state.selectedEntry} onClosed={() => this.handleDialogClose()} onEdit={() => this.handleDialogEdit()} />
+                            return <EntryModal editable={false} initialEntry={this.state.selectedEntry} onClosed={() => this.handleDialogClose()}
+                                onEdit={() => this.handleDialogEdit()} />
                         case ModalState.Edit:
                             return <EntryModal editable={true} initialEntry={this.state.selectedEntry} onClosed={() => this.handleDialogClose()}
                                 onApply={edited => this.handleDialogApply(edited)} onDelete={() => this.handleDialogDelete()} />
@@ -57,12 +58,12 @@ export class Diary extends React.Component<{}, State> {
         $(window).off('resize.Diary');
     }
 
-    // Handle window resize events by updating our width and height in state.
+    // Handle window resize events by updating the height of EntryTable in state.
     private handleWindowResize(): void {
         let $footer = $("footer");
         let footer_offset = $footer.offset(), top_offset = $(this.refs.stretchableTop).offset();
         this.setState({
-            height: $footer.css("display") !== "none" && footer_offset && top_offset ? footer_offset.top - top_offset.top : null
+            tableHeight: $footer.css("display") !== "none" && footer_offset && top_offset ? footer_offset.top - top_offset.top : null
         });
     }
 

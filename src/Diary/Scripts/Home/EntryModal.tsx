@@ -135,7 +135,7 @@ export class EntryModal extends React.PureComponent<Props, State> {
             this.props.onEdit();
     }
 
-    // Due to the "OK" button from EntryDialog or the "Yes" button from AlertDialog
+    // From the "OK" button of EntryDialog or the "Yes" button of AlertDialog
     private handleSave(): void {
         this.props.onApply && this.props.onApply(this.state.entry);
         this.initiateClose();
