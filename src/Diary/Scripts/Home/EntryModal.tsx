@@ -5,7 +5,7 @@ import { EntryDialog } from './EntryDialog';
 import { AlertDialog } from './AlertDialog';
 
 enum AlertState {
-    None, ConfirmClose, ConfirmDelete
+    None, ConfirmCancel, ConfirmDelete
 }
 
 interface Props {
@@ -59,13 +59,13 @@ export class EntryModal extends React.PureComponent<Props, State> {
                     switch (this.state.alertState) {
                         case AlertState.None:
                             return <EntryDialog entry={this.state.entry} editable={this.props.editable} deletable={!!this.props.initialEntry}
-                                onChange={(key, new_value) => this.handlDialogChange(key, new_value)} onClose={() => this.handleDialogClose()}
-                                onSecondary={() => this.handleDialogSecondary()} />;
-                        case AlertState.ConfirmClose:
+                                onChange={(key, new_value) => this.handlDialogChange(key, new_value)} onCancel={valid => this.handleDialogCancel(valid)}
+                                onSave={() => this.handleSave()} onSecondary={() => this.handleDialogSecondary()} />;
+                        case AlertState.ConfirmCancel:
                             return <AlertDialog message="Do you want to save your changes?" buttons={[
                                 {
                                     label: 'Yes',
-                                    onClick: () => this.handleAlertSave(),
+                                    onClick: () => this.handleSave(),
                                     btnClassSuffix: 'primary'
                                 },
                                 {
@@ -121,13 +121,13 @@ export class EntryModal extends React.PureComponent<Props, State> {
         this.setState({ entry: entry_clone });
     }
 
-    private handleDialogClose(): void {
-        if (this.state.entry === this.props.initialEntry)
-            // No changes: can close immediately
+    private handleDialogCancel(valid: boolean): void {
+        if (!valid || this.state.entry === this.props.initialEntry)
+            // Not valid or no changes: can close immediately
             this.initiateClose();
         else
-            // Something has changed.
-            this.setState({ alertState: AlertState.ConfirmClose });
+            // Something has changed and the user might want to save.
+            this.setState({ alertState: AlertState.ConfirmCancel });
     }
 
     private handleDialogSecondary(): void {
@@ -139,7 +139,8 @@ export class EntryModal extends React.PureComponent<Props, State> {
             this.props.onEdit();
     }
 
-    private handleAlertSave(): void {
+    // Due to the "OK" button from EntryDialog or the "Yes" button from AlertDialog
+    private handleSave(): void {
         this.props.onApply && this.props.onApply(this.state.entry);
         this.initiateClose();
     }

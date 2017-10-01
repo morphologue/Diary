@@ -60,8 +60,9 @@ export class Diary extends React.Component<{}, State> {
     // Handle window resize events by updating our width and height in state.
     private handleWindowResize(): void {
         let $footer = $("footer");
+        let footer_offset = $footer.offset(), top_offset = $(this.refs.stretchableTop).offset();
         this.setState({
-            height: $footer.css("display") === "none" ? null : $footer.offset().top - $(this.refs.stretchableTop).offset().top
+            height: $footer.css("display") !== "none" && footer_offset && top_offset ? footer_offset.top - top_offset.top : null
         });
     }
 

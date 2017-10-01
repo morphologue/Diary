@@ -19,15 +19,16 @@ $((): void => {
 
     // Install the resizer and run it.
     let resizer = (): void => {
-        if ($footer.css("display") === "none")
+        let window_height = $window.height(), container_width = $container.width();
+        if ($footer.css("display") === "none" || !window_height || !container_width || !static_height)
             // The footer will be hidden on mobiles, so there's no point resizing.
             return;
 
-        let new_top = $window.height() - static_height;
+        let new_top = window_height - static_height;
         if (new_top < MIN_TOP)
             new_top = MIN_TOP;
         $footer.css("top", new_top + "px");
-        $footer.outerWidth($container.width());
+        $footer.outerWidth(container_width);
     };
     $(window).resize(resizer);
     resizer();
