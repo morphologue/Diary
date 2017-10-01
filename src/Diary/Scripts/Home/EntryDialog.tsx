@@ -18,8 +18,9 @@ interface Props {
     entry: Entry;
     editable: boolean;
     deletable: boolean;
+    changed: boolean;
     onChange: (key: keyof Entry, new_value: string) => void;
-    onCancel: (valid: boolean) => void;
+    onCancel: (saveable: boolean) => void;
     onSave: () => void;
     onSecondary: () => void;  // Clicked "Edit" in view mode or "Delete" in edit mode
 }
@@ -85,7 +86,8 @@ export class EntryDialog extends React.PureComponent<Props> {
                         this.props.editable ?
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-default" onClick={() => this.onCancel()}>Cancel</button>
-                                <button type="button" className="btn btn-primary" disabled={!this.isEntryValid()} onClick={() => this.props.onSave()}>OK</button>
+                                <button type="button" className="btn btn-primary" disabled={!this.isEntryValid() || !this.props.changed}
+                                    onClick={() => this.props.onSave()}>OK</button>
                                 {this.props.deletable && <button type="button" className="btn btn-danger" onClick={() => this.props.onSecondary()}>Delete</button>}
                             </div>
                             : <div className="modal-footer">
@@ -99,7 +101,7 @@ export class EntryDialog extends React.PureComponent<Props> {
     }
 
     private onCancel(): void {
-        this.props.onCancel(this.isEntryValid());
+        this.props.onCancel(this.props.changed && this.isEntryValid());
     }
 
     private isEntryValid(): boolean {
