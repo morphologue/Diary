@@ -5,6 +5,7 @@ import { EntryTable } from './EntryTable';
 import { EntryModal } from './EntryModal';
 
 export interface Entry {
+    key: number,
     title: string,
     date: string,
     location: string,
@@ -16,16 +17,20 @@ enum ModalState { Closed, View, Edit };
 interface State {
     tableHeight: number | null,
     dialogState: ModalState,
+    entries: Entry[];
     selectedEntry?: Entry
 }
 
 // This is the top-level component which controls the layout of the app: search bar above entry table.
-export class Diary extends React.Component<{}, State> {
+export class Diary extends React.PureComponent<{}, State> {
+    private static nextEntryKey = 1;
+
     constructor() {
         super();
         this.state = {
             tableHeight: null,
-            dialogState: ModalState.Closed
+            dialogState: ModalState.Closed,
+            entries: []
         };
     }
 
@@ -34,17 +39,15 @@ export class Diary extends React.Component<{}, State> {
             <div style={{ marginTop: 20 }} >
                 <SearchBar onAddButtonClick={() => this.handleAddButtonClick()} />
                 <div ref="stretchableTop" style={{ marginTop: 15 }} />
-                <EntryTable height={this.state.tableHeight} />
-                {((): JSX.Element | undefined => {
-                    switch (this.state.dialogState) {
-                        case ModalState.View:
-                            return <EntryModal editable={false} initialEntry={this.state.selectedEntry} onClosed={() => this.handleDialogClose()}
-                                onEdit={() => this.handleDialogEdit()} />
-                        case ModalState.Edit:
-                            return <EntryModal editable={true} initialEntry={this.state.selectedEntry} onClosed={() => this.handleDialogClose()}
-                                onApply={edited => this.handleDialogApply(edited)} onDelete={() => this.handleDialogDelete()} />
-                    }
-                })()}
+                <EntryTable height={this.state.tableHeight} entries={this.state.entries} onClick={clicked => this.handleEntryTableClick(clicked)} />
+                {this.state.dialogState !== ModalState.Closed && <EntryModal
+                    editable={this.state.dialogState === ModalState.Edit}
+                    initialEntry={this.state.selectedEntry}
+                    onClosed={() => this.handleDialogClosed()}
+                    onApply={edited => this.handleDialogApply(edited)}
+                    onDelete={() => this.handleDialogDelete()}
+                    onEdit={() => this.handleDialogEdit()}
+                />}
             </div>
         );
     }
@@ -74,9 +77,9 @@ export class Diary extends React.Component<{}, State> {
         });
     }
 
-    private handleDialogClose(): void {
+    private handleDialogClosed(): void {
         this.setState({
-            dialogState: ModalState.Closed
+            dialogState: ModalState.Closed,
         });
     }
 
@@ -87,14 +90,23 @@ export class Diary extends React.Component<{}, State> {
     }
 
     private handleDialogApply(edited: Entry): void {
+        edited.key = Diary.nextEntryKey++;
         this.setState({
-            selectedEntry: edited
+            entries: this.state.selectedEntry ? this.state.entries.map(e => e === this.state.selectedEntry ? edited : e)
+                : [edited, ...this.state.entries]
         });
     }
 
     private handleDialogDelete(): void {
         this.setState({
-            selectedEntry: undefined
+            entries: this.state.entries.filter(e => e !== this.state.selectedEntry),
+        });
+    }
+
+    private handleEntryTableClick(clicked: Entry) {
+        this.setState({
+            dialogState: ModalState.View,
+            selectedEntry: clicked
         });
     }
 }

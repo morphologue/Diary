@@ -12,9 +12,9 @@ interface Props {
     initialEntry?: Entry;
     editable: boolean;
     onClosed: () => void;
-    onEdit?: () => void;
-    onApply?: (new_entry: Entry) => void;
-    onDelete?: () => void;
+    onEdit: () => void;
+    onApply: (new_entry: Entry) => void;
+    onDelete: () => void;
 }
 
 interface State {
@@ -39,6 +39,7 @@ export class EntryModal extends React.PureComponent<Props, State> {
                 .join('-');
 
             entry = {
+                key: 0,
                 title: '',
                 date: yyyymmdd,
                 location: '',
@@ -130,19 +131,19 @@ export class EntryModal extends React.PureComponent<Props, State> {
         if (this.props.editable)
             // "Delete" was clicked.
             this.setState({ alertState: AlertState.ConfirmDelete });
-        else if (this.props.onEdit)
+        else
             // "Edit" was clicked.
             this.props.onEdit();
     }
 
     // From the "OK" button of EntryDialog or the "Yes" button of AlertDialog
     private handleSave(): void {
-        this.props.onApply && this.props.onApply(this.state.entry);
+        this.props.onApply(this.state.entry);
         this.initiateClose();
     }
 
     private handleAlertDelete(): void {
-        this.props.onDelete && this.props.onDelete();
+        this.props.onDelete();
         this.initiateClose();
     }
 }

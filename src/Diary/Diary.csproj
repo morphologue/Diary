@@ -69,6 +69,9 @@
     <None Update="Scripts\Home\AlertDialog.js">
       <DependentUpon>AlertDialog.tsx</DependentUpon>
     </None>
+    <None Update="Scripts\Home\DatePicker.js">
+      <DependentUpon>DatePicker.tsx</DependentUpon>
+    </None>
     <None Update="Scripts\Home\Diary.js">
       <DependentUpon>Diary.tsx</DependentUpon>
     </None>
