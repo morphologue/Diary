@@ -240,7 +240,6 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
-/src/Diary/wwwroot/bundle
 
 # JS generated from TypeScript
 **/Scripts/**/*.js
@@ -249,3 +248,4 @@ ModelManifest.xml
 /src/Diary/wwwroot/skins
 /src/Diary/wwwroot/*.js
 /src/Diary/wwwroot/*.js.map
+/src/Diary/wwwroot/plugins

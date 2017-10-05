@@ -1,6 +1,7 @@
 ﻿/// <binding ProjectOpened='Watch - Development' />
 var Webpack = require('webpack');
 var WebpackNotifier = require('webpack-notifier');
+var CopyWebpackPlugin = require('copy-webpack-plugin');
 
 var PROD = process.env.NODE_ENV === 'production';
 
@@ -45,7 +46,21 @@ module.exports = {
         ]
     },
     plugins: [
-        new WebpackNotifier()
+        new WebpackNotifier(),
+        new CopyWebpackPlugin([
+            {
+                from: 'node_modules/bootstrap/dist/css/bootstrap.min.css',
+                to: 'skins'
+            },
+            {
+                from: 'node_modules/tinymce/skins',
+                to: 'skins'
+            },
+            {
+                from: 'node_modules/tinymce/plugins',
+                to: 'plugins'
+            }
+        ])
     ].concat(PROD ? [
         new Webpack.optimize.UglifyJsPlugin({
             sourceMap: true,

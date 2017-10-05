@@ -20,8 +20,8 @@ export class EntryTable extends React.Component<Props> {
                 {
                         this.props.entries.map(e =>
                             <a key={e.key} className="list-group-item" href="javascript:;" onClick={() => this.props.onClick(e)}>
-                            <h4 className="list-group-item-heading">{e.date}: {e.title}</h4>
-                            <p className="list-group-item-text">{this.sanitiseAndElipsise(e.body)}</p>
+                                <h4 className="list-group-item-heading">{e.date}: {e.title}</h4>
+                                <p className="list-group-item-text" style={{ wordWrap: 'break-word' }}>{this.sanitiseAndElipsise(e.body)}</p>
                         </a>
                     )
                 }

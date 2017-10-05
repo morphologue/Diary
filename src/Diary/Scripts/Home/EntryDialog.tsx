@@ -1,18 +1,10 @@
 ﻿import * as React from 'react';
 import { Entry } from './Diary';
 import { DatePicker } from './DatePicker';
-import TinyMCE = require('react-mce');
 import moment = require('moment');
-
-// Make TinyMCE work with Webpack, ergh :(
 import 'tinymce/tinymce';
 import 'tinymce/themes/modern';
-declare let require: any;
-require.context(
-    'file-loader?name=[path][name].[ext]&context=node_modules/tinymce!tinymce/skins',
-    true,
-    /.*/
-);
+import TinyMCE = require('react-mce');
 
 interface Props {
     entry: Entry;
@@ -35,7 +27,7 @@ export class EntryDialog extends React.PureComponent<Props> {
             }}>
                 <div ref="content" className="modal-content">
                     <div className="modal-header">
-                        <div className={`form-group${this.props.entry.title ? "" : " has-error"}`}>
+                        <div className={'form-group' + (this.props.entry.title ? '' : ' has-error')} style={{ marginBottom: 0 }}>
                             <button type="button" className="close" style={{ float: 'right' }} onClick={() => this.onCancel()}>&times;</button>
                             <span style={{
                                 display: 'block',
@@ -69,15 +61,22 @@ export class EntryDialog extends React.PureComponent<Props> {
                                     : <div className="form-control">{this.props.entry.location}</div>
                             }
                         </div>
-                        <div className="form-group">
+                        <div className="form-group" style={{ marginBottom: 0 }}>
                             <label>Entry</label>
                             {
                                 this.props.editable ?
                                     <TinyMCE content={this.props.entry.body} config={{
-                                        height: '20em'
+                                        height: '20em',
+                                        statusbar: false,
+                                        branding: false,
+                                        content_css: 'skins/bootstrap.min.css',
+                                        plugins: 'paste table',
+                                        paste_data_images: true,
+                                        menubar: 'edit table'
                                     }} onKeyup={(e, editor) => this.props.onChange('body', editor.getContent())} />
                                     : <div className="form-control" dangerouslySetInnerHTML={{ __html: this.props.entry.body }} style={{
-                                        height: '20em'
+                                        height: '20em',
+                                        wordWrap: 'break-word'
                                     }} />
                             }
                         </div>
