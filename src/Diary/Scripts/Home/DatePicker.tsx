@@ -6,6 +6,7 @@ import * as React from 'react';
 interface Props {
     date: string;
     className: string;
+    disabled: boolean;
     onChange: (new_date: string) => void;
 }
 
@@ -13,7 +14,7 @@ interface Props {
 // onChange is fired. However the validity of the entered date is not guaranteed.
 export class DatePicker extends React.PureComponent<Props> {
     render(): JSX.Element {
-        return <input ref="input" type="text" className={this.props.className} value={this.props.date} onChange={e => this.props.onChange(e.currentTarget.value)} />;
+        return <input ref="input" type="text" className={this.props.className} value={this.props.date} onChange={e => this.props.onChange(e.currentTarget.value)} disabled={this.props.disabled} />;
     }
 
     componentDidMount(): void {

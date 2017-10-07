@@ -1,7 +1,9 @@
 ﻿import * as React from 'react';
+import * as $ from 'jquery';
 import { Entry } from './Diary';
 import { DatePicker } from './DatePicker';
 import moment = require('moment');
+import * as ActualTinyMCE from 'tinymce';
 import 'tinymce/tinymce';
 import 'tinymce/themes/modern';
 import TinyMCE = require('react-mce');
@@ -18,26 +20,33 @@ interface Props {
 }
 
 // This component presents a view of the given 'entry'. If 'editable' is true and anything is changed, onChange will fire.
-export class EntryDialog extends React.PureComponent<Props> {
+export class EntryDialog extends React.PureComponent<Props, { locked: boolean }> {
+    private tmceEditor: ActualTinyMCE.Editor;
+
+    constructor(props: Props) {
+        super(props);
+        this.state = { locked: false };
+    }
+
     render(): JSX.Element {
         return (
             <div className="modal-dialog" style={{
                 width: '80%',
                 minWidth: 400
             }}>
-                <div ref="content" className="modal-content">
+                <div className="modal-content">
                     <div className="modal-header">
                         <div className={'form-group' + (this.props.entry.title ? '' : ' has-error')} style={{ marginBottom: 0 }}>
                             <button type="button" className="close" style={{ float: 'right' }} onClick={() => this.onCancel()}>&times;</button>
-                            <span style={{
+                            <span ref="title" style={{
                                 display: 'block',
                                 overflow: 'hidden',
                                 paddingRight: 15
                             }}>
                                 {
                                     this.props.editable ?
-                                        <input type="text" className="form-control" placeholder="Title" value={this.props.entry.title}
-                                            style={{ width: '100%' }} onChange={e => this.props.onChange('title', e.currentTarget.value)} />
+                                        <input type="text" className="form-control" placeholder="Title" value={this.props.entry.title} style={{ width: '100%' }}
+                                            onChange={e => this.props.onChange('title', e.currentTarget.value)} disabled={this.state.locked} />
                                         : <h4 className="modal-title">{this.props.entry.title}</h4>
                                 }
                             </span>
@@ -48,7 +57,7 @@ export class EntryDialog extends React.PureComponent<Props> {
                             <label>Date&nbsp;</label>
                             {
                                 this.props.editable ?
-                                    <DatePicker date={this.props.entry.date} className="form-control" onChange={new_date => this.props.onChange('date', new_date)} />
+                                    <DatePicker date={this.props.entry.date} className="form-control" onChange={new_date => this.props.onChange('date', new_date)} disabled={this.state.locked} />
                                     : <div className="form-control">{this.props.entry.date}</div>
                             }
                         </div>
@@ -56,7 +65,7 @@ export class EntryDialog extends React.PureComponent<Props> {
                             <label>Location</label>
                             {
                                 this.props.editable ?
-                                    <input type="text" className="form-control" value={this.props.entry.location}
+                                    <input type="text" className="form-control" value={this.props.entry.location} disabled={this.state.locked}
                                         onChange={e => this.props.onChange('location', e.currentTarget.value)} />
                                     : <div className="form-control">{this.props.entry.location}</div>
                             }
@@ -67,16 +76,17 @@ export class EntryDialog extends React.PureComponent<Props> {
                                 this.props.editable ?
                                     <TinyMCE content={this.props.entry.body} config={{
                                         height: '20em',
-                                        statusbar: false,
                                         branding: false,
                                         content_css: 'skins/bootstrap.min.css',
-                                        plugins: 'paste table',
+                                        plugins: 'advlist autolink link image imagetools lists charmap print hr searchreplace wordcount media nonbreaking table contextmenu emoticons paste textcolor',
                                         paste_data_images: true,
-                                        menubar: 'edit table'
-                                    }} onKeyup={(e, editor) => this.props.onChange('body', editor.getContent())} />
+                                        toolbar: 'formatselect | fontselect | fontsizeselect | emoticons | bold italic underline | bullist numlist outdent indent | image table forecolor backcolor'
+                                    }} onInit={(e, editor) => this.tmceEditor = editor} onChange={(e, editor) => this.props.onChange('body', editor.getContent())} />
                                     : <div className="form-control" dangerouslySetInnerHTML={{ __html: this.props.entry.body }} style={{
-                                        height: '20em',
-                                        wordWrap: 'break-word'
+                                        minHeight: '20em',
+                                        wordWrap: 'break-word',
+                                        overflow: 'auto',
+                                        resize: 'vertical'
                                     }} />
                             }
                         </div>
@@ -84,14 +94,14 @@ export class EntryDialog extends React.PureComponent<Props> {
                     {
                         this.props.editable ?
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-default" onClick={() => this.onCancel()}>Cancel</button>
-                                <button type="button" className="btn btn-primary" disabled={!this.isEntryValid() || !this.props.changed}
-                                    onClick={() => this.props.onSave()}>OK</button>
-                                {this.props.deletable && <button type="button" className="btn btn-danger" onClick={() => this.props.onSecondary()}>Delete</button>}
+                                <button type="button" className="btn btn-default" onClick={() => this.onCancel()} disabled={this.state.locked}>Cancel</button>
+                                <button type="button" className="btn btn-primary" disabled={this.state.locked || !this.isEntryValid() || !this.props.changed}
+                                    onClick={() => this.onSave()}>OK</button>
+                                {this.props.deletable && <button type="button" className="btn btn-danger" onClick={() => this.onSecondary()} disabled={this.state.locked}>Delete</button>}
                             </div>
                             : <div className="modal-footer">
-                                <button type="button" className="btn btn-default" onClick={() => this.onCancel()}>Close</button>
-                                <button type="button" className="btn btn-primary" onClick={() => this.props.onSecondary()}>Edit</button>
+                                <button type="button" className="btn btn-default" onClick={() => this.onCancel()} disabled={this.state.locked}>Close</button>
+                                <button type="button" className="btn btn-primary" onClick={() => this.onSecondary()} disabled={this.state.locked}>Edit</button>
                             </div>
                     }
                 </div>
@@ -99,8 +109,48 @@ export class EntryDialog extends React.PureComponent<Props> {
         );
     }
 
+    componentDidMount(): void {
+        // Focus in the title input after we're first created.
+        setTimeout(() => $(this.refs.title).find('input').focus(), 500);
+    }
+
     private onCancel(): void {
-        this.props.onCancel(this.props.changed && this.isEntryValid());
+        this.uploadImages(() => this.props.onCancel(this.props.changed && this.isEntryValid()));
+    }
+
+    private onSave(): void {
+        this.uploadImages(() => this.props.onSave());
+    }
+
+    private onSecondary(): void {
+        this.uploadImages(() => this.props.onSecondary());
+    }
+
+    // Make sure any images are uploaded, and other changes not captured by onChange (e.g. paste) propagated, then do 'and_then'.
+    private uploadImages(and_then: () => void): void {
+        if (!this.props.editable) {
+            and_then();
+            return;
+        }
+
+        // Disable the interface and show a progress bar while we upload images.
+        this.tmceEditor.setMode('readonly');
+        this.setState({ locked: true });
+        this.tmceEditor.setProgressState(true, 500);
+
+        this.tmceEditor.uploadImages(() => {
+            // Re-enable the interface and hide the progress bar.
+            this.tmceEditor.setMode('design');
+            this.setState({ locked: false });
+            this.tmceEditor.setProgressState(false, 0);
+
+            // The content may have changed due to e.g. a paste or an image upload.
+            let content = this.tmceEditor.getContent();
+            content === this.props.entry.body || this.props.onChange('body', content);
+
+            // Now get around to whatever else we were trying to do.
+            and_then();
+        });
     }
 
     private isEntryValid(): boolean {

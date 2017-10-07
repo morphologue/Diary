@@ -3,9 +3,10 @@ import * as React from 'react';
 import { Entry } from './Diary';
 import { EntryDialog } from './EntryDialog';
 import { AlertDialog } from './AlertDialog';
+import { SpinnerDialog } from './SpinnerDialog';
 
 enum AlertState {
-    None, ConfirmCancel, ConfirmDelete
+    None, ConfirmCancel, ConfirmDelete, Spinner
 }
 
 interface Props {
@@ -66,16 +67,19 @@ export class EntryModal extends React.PureComponent<Props, State> {
                         case AlertState.ConfirmCancel:
                             return <AlertDialog message="Do you want to save your changes?" buttons={[
                                 {
+                                    key: 1,
                                     label: 'Yes',
                                     onClick: () => this.handleSave(),
                                     btnClassSuffix: 'primary'
                                 },
                                 {
+                                    key: 2,
                                     label: 'No',
                                     onClick: () => this.initiateClose(),
                                     btnClassSuffix: 'default'
                                 },
                                 {
+                                    key: 3,
                                     label: 'Cancel',
                                     onClick: () => this.setState({ alertState: AlertState.None }),
                                     btnClassSuffix: 'default'
@@ -84,16 +88,20 @@ export class EntryModal extends React.PureComponent<Props, State> {
                         case AlertState.ConfirmDelete:
                             return <AlertDialog message="Are you sure you want to delete the entry?" buttons={[
                                 {
+                                    key: 4,
                                     label: 'Delete',
                                     onClick: () => this.handleAlertDelete(),
                                     btnClassSuffix: 'danger'
                                 },
                                 {
+                                    key: 5,
                                     label: 'Cancel',
                                     onClick: () => this.setState({ alertState: AlertState.None }),
                                     btnClassSuffix: 'default'
                                 }
                             ]} />;
+                        case AlertState.Spinner:
+                            return <SpinnerDialog />;
                     }
                 })()}
             </div>
@@ -138,6 +146,7 @@ export class EntryModal extends React.PureComponent<Props, State> {
 
     // From the "OK" button of EntryDialog or the "Yes" button of AlertDialog
     private handleSave(): void {
+        this.setState({ alertState: AlertState.Spinner });
         this.props.onApply(this.state.entry);
         this.initiateClose();
     }

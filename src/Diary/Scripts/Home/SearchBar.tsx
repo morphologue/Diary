@@ -1,7 +1,9 @@
 ﻿import * as React from 'react';
 
 interface Props {
-    onAddButtonClick: () => void
+    searchText: string;
+    onAddButtonClick: () => void;
+    onChange: (new_search_text: string) => void;
 }
 
 export class SearchBar extends React.Component<Props> {
@@ -17,7 +19,7 @@ export class SearchBar extends React.Component<Props> {
                     overflow: 'hidden',
                     paddingLeft: 7
                 }}>
-                    <input type="search" className="form-control" placeholder="Search" style={{
+                    <input type="search" className="form-control" placeholder="Search" value={this.props.searchText} onChange={evt => this.props.onChange(evt.currentTarget.value)} style={{
                         borderRadius: 10,
                         width: '100%'
                     }} />

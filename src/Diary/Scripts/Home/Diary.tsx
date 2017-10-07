@@ -17,6 +17,7 @@ enum ModalState { Closed, View, Edit };
 interface State {
     tableHeight: number | null,
     dialogState: ModalState,
+    searchText: string,
     entries: Entry[];
     selectedEntry?: Entry
 }
@@ -30,6 +31,7 @@ export class Diary extends React.PureComponent<{}, State> {
         this.state = {
             tableHeight: null,
             dialogState: ModalState.Closed,
+            searchText: '',
             entries: []
         };
     }
@@ -37,7 +39,7 @@ export class Diary extends React.PureComponent<{}, State> {
     render(): JSX.Element {
         return (
             <div style={{ marginTop: 20 }} >
-                <SearchBar onAddButtonClick={() => this.handleAddButtonClick()} />
+                <SearchBar searchText={this.state.searchText} onChange={new_search_text => this.handleSearchTextChange(new_search_text)} onAddButtonClick = {() => this.handleAddButtonClick()} />
                 <div ref="stretchableTop" style={{ marginTop: 15 }} />
                 <EntryTable height={this.state.tableHeight} entries={this.state.entries} onClick={clicked => this.handleEntryTableClick(clicked)} />
                 {this.state.dialogState !== ModalState.Closed && <EntryModal
@@ -108,5 +110,9 @@ export class Diary extends React.PureComponent<{}, State> {
             dialogState: ModalState.View,
             selectedEntry: clicked
         });
+    }
+
+    private handleSearchTextChange(new_search_text: string): void {
+        this.setState({ searchText: new_search_text });
     }
 }
