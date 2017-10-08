@@ -42,14 +42,14 @@ namespace Diary.Controllers
         {
             string extension = GetAndValidateExtension(id);
             if (extension == null)
-                return StatusCode(404);
+                return NotFound(404);
 
             string name = Path.GetFileNameWithoutExtension(id);
             Guid unused;
             if (!Guid.TryParse(name, out unused))
             {
                 _logger.LogError($"File name '{name}' is not a GUID");
-                return StatusCode(404);
+                return NotFound();
             }
 
             string server_path = Path.Combine(imageBaseDir, (await _userManager.GetUserAsync(User)).Id, id);
@@ -60,7 +60,7 @@ namespace Diary.Controllers
             }
             catch (FileNotFoundException)
             {
-                return StatusCode(404);
+                return NotFound();
             }
             catch(Exception e)
             {
@@ -73,7 +73,7 @@ namespace Diary.Controllers
         {
             string extension = GetAndValidateExtension(file.FileName);
             if (extension == null)
-                return StatusCode(400);
+                return BadRequest();
 
             // Determine the server path in a directory specific to this user and make sure the directory exists.
             string file_name = $"{Guid.NewGuid()}{extension}";

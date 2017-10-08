@@ -46,7 +46,7 @@ export class EntryDialog extends React.PureComponent<Props, { locked: boolean }>
                                 {
                                     this.props.editable ?
                                         <input type="text" className="form-control" placeholder="Title" value={this.props.entry.title} style={{ width: '100%' }}
-                                            onChange={e => this.props.onChange('title', e.currentTarget.value)} disabled={this.state.locked} />
+                                            onChange={e => this.props.onChange('title', e.currentTarget.value)} disabled={this.state.locked} maxLength={100} />
                                         : <h4 className="modal-title">{this.props.entry.title}</h4>
                                 }
                             </span>
@@ -66,7 +66,7 @@ export class EntryDialog extends React.PureComponent<Props, { locked: boolean }>
                             {
                                 this.props.editable ?
                                     <input type="text" className="form-control" value={this.props.entry.location} disabled={this.state.locked}
-                                        onChange={e => this.props.onChange('location', e.currentTarget.value)} />
+                                        onChange={e => this.props.onChange('location', e.currentTarget.value)} maxLength={100} />
                                     : <div className="form-control">{this.props.entry.location}</div>
                             }
                         </div>

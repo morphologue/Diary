@@ -79,7 +79,10 @@ namespace Diary.Data.Migrations
                     b.Property<string>("Body")
                         .IsRequired();
 
-                    b.Property<DateTime>("Date");
+                    b.Property<string>("Date")
+                        .IsRequired()
+                        .HasColumnType("char(10)")
+                        .HasMaxLength(10);
 
                     b.Property<string>("Location")
                         .IsRequired()
@@ -93,7 +96,7 @@ namespace Diary.Data.Migrations
 
                     b.HasIndex("ApplicationUserID");
 
-                    b.ToTable("DiaryEntry");
+                    b.ToTable("DiaryEntries");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityRole", b =>

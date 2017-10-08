@@ -20,5 +20,7 @@ namespace Diary.Data
                 .WithOne(e => e.ApplicationUser)
                 .HasForeignKey(e => e.ApplicationUserID);
         }
+
+        public DbSet<DiaryEntry> DiaryEntries { get; set; }
     }
 }

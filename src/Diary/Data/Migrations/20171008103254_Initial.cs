@@ -65,22 +65,22 @@ namespace Diary.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DiaryEntry",
+                name: "DiaryEntries",
                 columns: table => new
                 {
                     EntryID = table.Column<int>(nullable: false)
                         .Annotation("MySql:ValueGeneratedOnAdd", true),
                     ApplicationUserID = table.Column<string>(nullable: true),
                     Body = table.Column<string>(nullable: false),
-                    Date = table.Column<DateTime>(nullable: false),
+                    Date = table.Column<string>(type: "char(10)", maxLength: 10, nullable: false),
                     Location = table.Column<string>(maxLength: 100, nullable: false),
                     Title = table.Column<string>(maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DiaryEntry", x => x.EntryID);
+                    table.PrimaryKey("PK_DiaryEntries", x => x.EntryID);
                     table.ForeignKey(
-                        name: "FK_DiaryEntry_AspNetUsers_ApplicationUserID",
+                        name: "FK_DiaryEntries_AspNetUsers_ApplicationUserID",
                         column: x => x.ApplicationUserID,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -185,8 +185,8 @@ namespace Diary.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_DiaryEntry_ApplicationUserID",
-                table: "DiaryEntry",
+                name: "IX_DiaryEntries_ApplicationUserID",
+                table: "DiaryEntries",
                 column: "ApplicationUserID");
 
             migrationBuilder.CreateIndex(
@@ -218,7 +218,7 @@ namespace Diary.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "DiaryEntry");
+                name: "DiaryEntries");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");

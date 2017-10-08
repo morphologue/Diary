@@ -8,7 +8,7 @@ using Diary.Data;
 namespace Diary.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20171008053304_Initial")]
+    [Migration("20171008103254_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -80,7 +80,10 @@ namespace Diary.Data.Migrations
                     b.Property<string>("Body")
                         .IsRequired();
 
-                    b.Property<DateTime>("Date");
+                    b.Property<string>("Date")
+                        .IsRequired()
+                        .HasColumnType("char(10)")
+                        .HasMaxLength(10);
 
                     b.Property<string>("Location")
                         .IsRequired()
@@ -94,7 +97,7 @@ namespace Diary.Data.Migrations
 
                     b.HasIndex("ApplicationUserID");
 
-                    b.ToTable("DiaryEntry");
+                    b.ToTable("DiaryEntries");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityRole", b =>

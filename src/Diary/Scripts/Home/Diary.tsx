@@ -43,7 +43,7 @@ export class Diary extends React.PureComponent<{}, State> {
             <div style={{ marginTop: 20 }} >
                 <SearchBar searchText={this.state.searchText} onChange={new_search_text => this.handleSearchTextChange(new_search_text)} onAddButtonClick = {() => this.handleAddButtonClick()} />
                 <div ref="stretchableTop" style={{ marginTop: 15 }} />
-                {this.state.spinning ? <img src="/spinner.gif" style={{ display: 'block', margin: '0 auto' }} />
+                {this.state.spinning ? <img src="/spinner.gif" style={{ display: 'block', margin: '0 auto', height: 120 }} />
                  : <EntryTable height={this.state.tableHeight} entries={this.state.entries} onClick={clicked => this.handleEntryTableClick(clicked)} />}
                 {this.state.modalState !== ModalState.Closed && <EntryModal
                     editable={this.state.modalState === ModalState.Edit}
