@@ -65,6 +65,29 @@ namespace Diary.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DiaryEntry",
+                columns: table => new
+                {
+                    EntryID = table.Column<int>(nullable: false)
+                        .Annotation("MySql:ValueGeneratedOnAdd", true),
+                    ApplicationUserID = table.Column<string>(nullable: true),
+                    Body = table.Column<string>(nullable: false),
+                    Date = table.Column<DateTime>(nullable: false),
+                    Location = table.Column<string>(maxLength: 100, nullable: false),
+                    Title = table.Column<string>(maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DiaryEntry", x => x.EntryID);
+                    table.ForeignKey(
+                        name: "FK_DiaryEntry_AspNetUsers_ApplicationUserID",
+                        column: x => x.ApplicationUserID,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetUserClaims",
                 columns: table => new
                 {
@@ -162,6 +185,11 @@ namespace Diary.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_DiaryEntry_ApplicationUserID",
+                table: "DiaryEntry",
+                column: "ApplicationUserID");
+
+            migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
                 table: "AspNetRoles",
                 column: "NormalizedName");
@@ -189,6 +217,9 @@ namespace Diary.Data.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "DiaryEntry");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 

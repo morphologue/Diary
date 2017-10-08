@@ -87,9 +87,6 @@
     <None Update="Scripts\Home\SearchBar.js">
       <DependentUpon>SearchBar.tsx</DependentUpon>
     </None>
-    <None Update="Scripts\Home\SpinnerDialog.js">
-      <DependentUpon>SpinnerDialog.tsx</DependentUpon>
-    </None>
     <None Update="Scripts\Site.css">
       <DependentUpon>Site.ts</DependentUpon>
     </None>

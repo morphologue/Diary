@@ -15,11 +15,12 @@ export interface Entry {
 enum ModalState { Closed, View, Edit };
 
 interface State {
-    tableHeight: number | null,
-    dialogState: ModalState,
-    searchText: string,
+    tableHeight: number | null;
+    modalState: ModalState;
+    searchText: string;
     entries: Entry[];
-    selectedEntry?: Entry
+    selectedEntry?: Entry;
+    spinning: boolean;
 }
 
 // This is the top-level component which controls the layout of the app: search bar above entry table.
@@ -30,9 +31,10 @@ export class Diary extends React.PureComponent<{}, State> {
         super();
         this.state = {
             tableHeight: null,
-            dialogState: ModalState.Closed,
+            modalState: ModalState.Closed,
             searchText: '',
-            entries: []
+            entries: [],
+            spinning: false
         };
     }
 
@@ -41,9 +43,10 @@ export class Diary extends React.PureComponent<{}, State> {
             <div style={{ marginTop: 20 }} >
                 <SearchBar searchText={this.state.searchText} onChange={new_search_text => this.handleSearchTextChange(new_search_text)} onAddButtonClick = {() => this.handleAddButtonClick()} />
                 <div ref="stretchableTop" style={{ marginTop: 15 }} />
-                <EntryTable height={this.state.tableHeight} entries={this.state.entries} onClick={clicked => this.handleEntryTableClick(clicked)} />
-                {this.state.dialogState !== ModalState.Closed && <EntryModal
-                    editable={this.state.dialogState === ModalState.Edit}
+                {this.state.spinning ? <img src="/spinner.gif" style={{ display: 'block', margin: '0 auto' }} />
+                 : <EntryTable height={this.state.tableHeight} entries={this.state.entries} onClick={clicked => this.handleEntryTableClick(clicked)} />}
+                {this.state.modalState !== ModalState.Closed && <EntryModal
+                    editable={this.state.modalState === ModalState.Edit}
                     initialEntry={this.state.selectedEntry}
                     onClosed={() => this.handleDialogClosed()}
                     onApply={edited => this.handleDialogApply(edited)}
@@ -74,20 +77,20 @@ export class Diary extends React.PureComponent<{}, State> {
 
     private handleAddButtonClick(): void {
         this.setState({
-            dialogState: ModalState.Edit,
+            modalState: ModalState.Edit,
             selectedEntry: undefined
         });
     }
 
     private handleDialogClosed(): void {
         this.setState({
-            dialogState: ModalState.Closed,
+            modalState: ModalState.Closed,
         });
     }
 
     private handleDialogEdit(): void {
         this.setState({
-            dialogState: ModalState.Edit
+            modalState: ModalState.Edit
         });
     }
 
@@ -107,7 +110,7 @@ export class Diary extends React.PureComponent<{}, State> {
 
     private handleEntryTableClick(clicked: Entry) {
         this.setState({
-            dialogState: ModalState.View,
+            modalState: ModalState.View,
             selectedEntry: clicked
         });
     }

@@ -3,10 +3,9 @@ import * as React from 'react';
 import { Entry } from './Diary';
 import { EntryDialog } from './EntryDialog';
 import { AlertDialog } from './AlertDialog';
-import { SpinnerDialog } from './SpinnerDialog';
 
 enum AlertState {
-    None, ConfirmCancel, ConfirmDelete, Spinner
+    None, ConfirmCancel, ConfirmDelete
 }
 
 interface Props {
@@ -100,8 +99,6 @@ export class EntryModal extends React.PureComponent<Props, State> {
                                     btnClassSuffix: 'default'
                                 }
                             ]} />;
-                        case AlertState.Spinner:
-                            return <SpinnerDialog />;
                     }
                 })()}
             </div>
@@ -146,7 +143,6 @@ export class EntryModal extends React.PureComponent<Props, State> {
 
     // From the "OK" button of EntryDialog or the "Yes" button of AlertDialog
     private handleSave(): void {
-        this.setState({ alertState: AlertState.Spinner });
         this.props.onApply(this.state.entry);
         this.initiateClose();
     }
