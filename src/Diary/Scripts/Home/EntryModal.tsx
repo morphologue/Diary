@@ -1,6 +1,6 @@
 ﻿import * as $ from 'jquery';
 import * as React from 'react';
-import { Entry } from './Diary';
+import { Entry, NEW_ENTRY_KEY } from './Diary';
 import { EntryDialog } from './EntryDialog';
 import { AlertDialog } from './AlertDialog';
 
@@ -39,7 +39,7 @@ export class EntryModal extends React.PureComponent<Props, State> {
                 .join('-');
 
             entry = {
-                key: 0,
+                key: NEW_ENTRY_KEY,
                 title: '',
                 date: yyyymmdd,
                 location: '',

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using Diary.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace Diary.Controllers
 {
@@ -64,11 +65,11 @@ namespace Diary.Controllers
                 .ToListAsync())
                 .Select(e => new Dictionary<string, object>()
                 {
-                    ["EntryID"] = e.EntryID,
-                    ["Title"] = e.Title,
-                    ["Date"] = e.Date,
-                    ["Location"] = e.Location,
-                    ["Body"] = e.Body
+                    ["key"] = e.EntryID,
+                    ["title"] = e.Title,
+                    ["date"] = e.Date,
+                    ["location"] = e.Location,
+                    ["body"] = e.Body
                 }));
         }
 
@@ -76,9 +77,10 @@ namespace Diary.Controllers
         [HttpPut]
         public async Task<IActionResult> IndexPut(int? id, [FromBody] [Bind("Title", "Date", "Location", "Body")] DiaryEntry put_entry)
         {
-            if (!ModelState.IsValid)
+            DateTime unused;
+            if (!ModelState.IsValid || !DateTime.TryParseExact(put_entry.Date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out unused))
             {
-                _logger.LogError($"Validation state: {ModelState.ValidationState}");
+                _logger.LogError($"Validation state: {ModelState.ValidationState}, Date: {put_entry.Date}");
                 return BadRequest();
             }
 

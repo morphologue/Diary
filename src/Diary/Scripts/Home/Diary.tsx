@@ -4,6 +4,8 @@ import { SearchBar } from './SearchBar';
 import { EntryTable } from './EntryTable';
 import { EntryModal } from './EntryModal';
 
+export const NEW_ENTRY_KEY = 0;
+
 export interface Entry {
     key: number,
     title: string,
@@ -21,6 +23,7 @@ interface State {
     entries: Entry[];
     selectedEntry?: Entry;
     spinning: boolean;
+    serverEmpty: boolean;
 }
 
 // This is the top-level component which controls the layout of the app: search bar above entry table.
@@ -34,7 +37,8 @@ export class Diary extends React.PureComponent<{}, State> {
             modalState: ModalState.Closed,
             searchText: '',
             entries: [],
-            spinning: false
+            spinning: false,
+            serverEmpty: false
         };
     }
 
@@ -43,8 +47,8 @@ export class Diary extends React.PureComponent<{}, State> {
             <div style={{ marginTop: 20 }} >
                 <SearchBar searchText={this.state.searchText} onChange={new_search_text => this.handleSearchTextChange(new_search_text)} onAddButtonClick = {() => this.handleAddButtonClick()} />
                 <div ref="stretchableTop" style={{ marginTop: 15 }} />
-                {this.state.spinning ? <img src="/spinner.gif" style={{ display: 'block', margin: '0 auto', height: 120 }} />
-                 : <EntryTable height={this.state.tableHeight} entries={this.state.entries} onClick={clicked => this.handleEntryTableClick(clicked)} />}
+                <EntryTable height={this.state.tableHeight} entries={this.state.entries} onClick={clicked => this.handleEntryTableClick(clicked)}
+                    onScrollHungry={() => this.handleEntryTableScrollHungry()} spinning={this.state.spinning} />
                 {this.state.modalState !== ModalState.Closed && <EntryModal
                     editable={this.state.modalState === ModalState.Edit}
                     initialEntry={this.state.selectedEntry}
@@ -117,5 +121,28 @@ export class Diary extends React.PureComponent<{}, State> {
 
     private handleSearchTextChange(new_search_text: string): void {
         this.setState({ searchText: new_search_text });
+    }
+
+    private handleEntryTableScrollHungry(): void {
+        if (this.state.serverEmpty || this.state.spinning)
+            return;
+
+        this.setState({
+            spinning: true
+        });
+        $.ajax({
+            url: '/diary/Entry',
+            data: {
+                last_id: this.state.entries.length ? this.state.entries[this.state.entries.length - 1].key : undefined,
+                search_text: this.state.searchText
+            },
+            success: (batch: Entry[]) => {
+                this.setState({
+                    entries: batch.length ? [...this.state.entries, ...batch] : this.state.entries,
+                    spinning: false,
+                    serverEmpty: !batch.length
+                });
+            }
+        });
     }
 }
