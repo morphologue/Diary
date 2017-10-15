@@ -3,6 +3,9 @@ import * as React from 'react';
 import { SearchBar } from './SearchBar';
 import { EntryTable } from './EntryTable';
 import { EntryModal } from './EntryModal';
+import 'tinymce/tinymce';
+import 'tinymce/themes/modern';
+declare let tinymce: any;
 
 export const NEW_ENTRY_KEY = 0;
 
@@ -122,7 +125,7 @@ export class Diary extends React.PureComponent<{}, State> {
 
     private handleDialogApply(edited: Entry): void {
         this.cancelInProgress();
-        let a: JQuery.AjaxSettings;
+        this.state.tableHeight === null && (edited.body = this.sanitizeHTML(edited.body));
         this.setState({
             ajaxInProgress: $.ajax({
                 url: Diary.getServerURL() + (this.state.selectedEntry ? `?id=${this.state.selectedEntry.key}` : ''),
@@ -165,6 +168,19 @@ export class Diary extends React.PureComponent<{}, State> {
                 }
             })
         });
+    }
+
+    private sanitizeHTML(html: string) {
+        let $sanitizer = $('<textarea id="sanitizer"></textarea>').val(html);
+        $(document.body).append($sanitizer);
+        tinymce.init({
+            selector: '#sanitizer'
+        });
+        let tmce = tinymce.get('sanitizer');
+        let result = tmce.getContent();
+        tmce.remove();
+        $sanitizer.remove();
+        return result;
     }
 
     private handleDialogDelete(): void {
