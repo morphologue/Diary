@@ -21,11 +21,13 @@ namespace Diary.Models
         [MaxLength(10)]
         public string Date { get; set; }
 
-        [Required]
+        [Required(AllowEmptyStrings = true)]
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
         [MaxLength(100)]
         public string Location { get; set; }
 
-        [Required]
+        [Required(AllowEmptyStrings = true)]
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
         public string Body { get; set; }
 
         public virtual ApplicationUser ApplicationUser { get; set; }

@@ -8,6 +8,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using Diary.Models;
+using Diary.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Diary.Controllers
 {
@@ -22,19 +26,21 @@ namespace Diary.Controllers
 
         readonly ILogger _logger;
         readonly UserManager<ApplicationUser> _userManager;
-        readonly string imageBaseDir;
+        readonly ApplicationDbContext _ef;
+        readonly string _imageBaseDir;
 
-        public ImageController(UserManager<ApplicationUser> userManager, ILoggerFactory loggerFactory)
+        public ImageController(UserManager<ApplicationUser> userManager, ILoggerFactory loggerFactory, ApplicationDbContext ef)
         {
             _userManager = userManager;
             _logger = loggerFactory.CreateLogger<AccountController>();
+            _ef = ef;
 
             // Get the image base directory from the image_dir setting, or default to ~/Diary/images.
-            imageBaseDir = Startup.Configuration["image_dir"];
-            if (string.IsNullOrEmpty(imageBaseDir))
+            _imageBaseDir = Startup.Configuration["image_dir"];
+            if (string.IsNullOrEmpty(_imageBaseDir))
             {
                 string home = Environment.GetEnvironmentVariable(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "LocalAppData" : "Home");
-                imageBaseDir = Path.Combine(home, "Diary", "images");
+                _imageBaseDir = Path.Combine(home, "Diary", "images");
             }
         }
 
@@ -52,13 +58,17 @@ namespace Diary.Controllers
                 return NotFound();
             }
 
-            string server_path = Path.Combine(imageBaseDir, (await _userManager.GetUserAsync(User)).Id, id);
+            string server_path = Path.Combine(_imageBaseDir, (await _userManager.GetUserAsync(User)).Id, id);
 
             try
             {
                 return File(new FileStream(server_path, FileMode.Open), extensionContentTypes[extension]);
             }
             catch (FileNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (DirectoryNotFoundException)
             {
                 return NotFound();
             }
@@ -77,7 +87,7 @@ namespace Diary.Controllers
 
             // Determine the server path in a directory specific to this user and make sure the directory exists.
             string file_name = $"{Guid.NewGuid()}{extension}";
-            string dir = Path.Combine(imageBaseDir, (await _userManager.GetUserAsync(User)).Id);
+            string dir = Path.Combine(_imageBaseDir, (await _userManager.GetUserAsync(User)).Id);
             Directory.CreateDirectory(dir);
             string server_path = Path.Combine(dir, file_name);
 
@@ -87,6 +97,36 @@ namespace Diary.Controllers
 
             // Let the client know how to access it.
             return Json(new { location = Url.Action("Index", new { id = file_name }) });
+        }
+
+        // Delete old image files which are not referenced by any diary entry. Called from a cron job.
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> CleanUp()
+        {
+            if (Request.Headers["x-api-key"] != Startup.Configuration["image_cleanup_secret"])
+                return Unauthorized();
+
+            DirectoryInfo base_dir = new DirectoryInfo(_imageBaseDir);
+            foreach (DirectoryInfo subdir in base_dir.EnumerateDirectories())
+            {
+                foreach (FileInfo file in subdir.EnumerateFiles()) {
+                    if (file.CreationTimeUtc >= DateTime.UtcNow.AddDays(-1))
+                        // Don't mess with files created in the last day, in case the entry just hasn't been saved yet.
+                        continue;
+
+                    string required_src = $"src=\"{Url.Action("Index", new { id = file.Name }).Substring(1)}\"";
+                    if (!(await _ef.DiaryEntries.AnyAsync(d =>
+                            d.ApplicationUserID == subdir.Name
+                            && d.Body.Contains(required_src))))
+                        file.Delete();
+                }
+                if (!subdir.EnumerateFiles().Any())
+                    // If there are no files left in the directory, remote it too.
+                    subdir.Delete();
+            }
+
+            return Ok();
         }
 
         string GetAndValidateExtension(string file_name)

@@ -58,19 +58,28 @@ namespace Diary.Controllers
                 }
             }
 
-            return Json((await query
+            // Go to the DB.
+            List<DiaryEntry> entries = await query
                 .OrderByDescending(e => e.Date)
                 .ThenByDescending(e => e.EntryID)
-                .Take(batch_size)
-                .ToListAsync())
-                .Select(e => new Dictionary<string, object>()
-                {
-                    ["key"] = e.EntryID,
-                    ["title"] = e.Title,
-                    ["date"] = e.Date,
-                    ["location"] = e.Location,
-                    ["body"] = e.Body
-                }));
+                .Take(batch_size + 1)
+                .ToListAsync();
+
+            // Format the results.
+            return Json(new Dictionary<string, object>()
+            {
+                ["entries"] = entries
+                    .Take(batch_size)
+                    .Select(e => new Dictionary<string, object>()
+                    {
+                        ["key"] = e.EntryID,
+                        ["title"] = e.Title,
+                        ["date"] = e.Date,
+                        ["location"] = e.Location,
+                        ["body"] = e.Body
+                    }),
+                ["serverEmpty"] = entries.Count <= batch_size
+            });
         }
 
         [ActionName("Index")]
@@ -80,7 +89,7 @@ namespace Diary.Controllers
             DateTime unused;
             if (!ModelState.IsValid || !DateTime.TryParseExact(put_entry.Date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out unused))
             {
-                _logger.LogError($"Validation state: {ModelState.ValidationState}, Date: {put_entry.Date}");
+                _logger.LogError($"ModelState: {string.Join(", ", ModelState.Keys)}, Date: {put_entry.Date}");
                 return BadRequest();
             }
 
@@ -106,7 +115,7 @@ namespace Diary.Controllers
                 put_entry.ApplicationUserID = (await _userManager.GetUserAsync(User)).Id;
                 _ef.DiaryEntries.Add(put_entry);
                 await _ef.SaveChangesAsync();
-                return Created(Url.Action("Index"), Json(new { EntryID = put_entry.EntryID }));
+                return Created(Url.Action("Index"), Json(new { key = put_entry.EntryID }));
             }
         }
 
