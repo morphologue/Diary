@@ -73,6 +73,7 @@ export class Diary extends React.PureComponent<{}, State> {
                 {this.state.modalState !== ModalState.Closed && <EntryModal
                     editable={this.state.modalState === ModalState.Edit}
                     initialEntry={this.state.selectedEntry}
+                    mobile={this.state.tableHeight === null}
                     onClosed={() => this.handleDialogClosed()}
                     onApply={edited => this.handleDialogApply(edited)}
                     onDelete={() => this.handleDialogDelete()}

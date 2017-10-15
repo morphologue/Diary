@@ -13,6 +13,7 @@ interface Props {
     editable: boolean;
     deletable: boolean;
     changed: boolean;
+    mobile: boolean;
     onChange: (key: keyof Entry, new_value: string) => void;
     onCancel: (saveable: boolean) => void;
     onSave: () => void;
@@ -29,10 +30,15 @@ export class EntryDialog extends React.PureComponent<Props, { locked: boolean }>
     }
 
     render(): JSX.Element {
+        let body_holder_style: React.CSSProperties = {
+            minHeight: '20em',
+            wordWrap: 'break-word',
+            overflow: 'auto',
+            resize: 'vertical'
+        };
         return (
             <div className="modal-dialog" style={{
-                width: '80%',
-                minWidth: 400
+                width: this.props.mobile ? undefined : '80%'
             }}>
                 <div className="modal-content">
                     <div className="modal-header">
@@ -73,23 +79,19 @@ export class EntryDialog extends React.PureComponent<Props, { locked: boolean }>
                         <div className="form-group" style={{ marginBottom: 0 }}>
                             <label>Entry</label>
                             {
-                                this.props.editable ?
-                                    <TinyMCE content={this.props.entry.body} config={{
-                                        height: '20em',
-                                        branding: false,
-                                        content_css: `${Diary.getUrlPrefix()}/skins/bootstrap.min.css`,
-                                        plugins: 'advlist autolink link image imagetools lists charmap print hr searchreplace wordcount media nonbreaking table contextmenu emoticons paste textcolor',
-                                        toolbar: 'formatselect | fontselect | fontsizeselect | emoticons | bold italic underline | bullist numlist outdent indent | image table | forecolor backcolor',
-                                        menubar: 'file edit insert format table',
-                                        paste_data_images: true,
-                                        images_upload_url: `${Diary.getUrlPrefix()}/Image/Upload`
-                                    }} onInit={(e, editor) => this.tmceEditor = editor} onChange={(e, editor) => this.props.onChange('body', editor.getContent())} />
-                                    : <div className="form-control" dangerouslySetInnerHTML={{ __html: this.props.entry.body }} style={{
-                                        minHeight: '20em',
-                                        wordWrap: 'break-word',
-                                        overflow: 'auto',
-                                        resize: 'vertical'
-                                    }} />
+                                this.props.editable ? (this.props.mobile ? <textarea value={this.props.entry.body} className="form-control" style={body_holder_style}
+                                    onChange={e => this.props.onChange('body', $(e.currentTarget).val() as string)} />
+                                        : <TinyMCE content={this.props.entry.body} config={{
+                                            height: '20em',
+                                            branding: false,
+                                            content_css: `${Diary.getUrlPrefix()}/skins/bootstrap.min.css`,
+                                            plugins: 'advlist autolink link image imagetools lists charmap print hr searchreplace wordcount media nonbreaking table contextmenu emoticons paste textcolor',
+                                            toolbar: 'formatselect | fontselect | fontsizeselect | emoticons | bold italic underline | bullist numlist outdent indent | image table | forecolor backcolor',
+                                            menubar: 'file edit insert format table',
+                                            paste_data_images: true,
+                                            images_upload_url: `${Diary.getUrlPrefix()}/Image/Upload`
+                                        }} onInit={(e, editor) => this.tmceEditor = editor} onChange={(e, editor) => this.props.onChange('body', editor.getContent())} />)
+                                    : <div className="form-control" dangerouslySetInnerHTML={{ __html: this.props.entry.body }} style={body_holder_style} />
                             }
                         </div>
                     </div>
@@ -130,7 +132,7 @@ export class EntryDialog extends React.PureComponent<Props, { locked: boolean }>
 
     // Make sure any images are uploaded, and other changes not captured by onChange (e.g. paste) propagated, then do 'and_then'.
     private uploadImages(and_then: () => void): void {
-        if (!this.props.editable) {
+        if (!this.props.editable || this.props.mobile) {
             and_then();
             return;
         }

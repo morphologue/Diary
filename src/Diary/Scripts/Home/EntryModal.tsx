@@ -11,6 +11,7 @@ enum AlertState {
 interface Props {
     initialEntry?: Entry;
     editable: boolean;
+    mobile: boolean;
     onClosed: () => void;
     onEdit: () => void;
     onApply: (new_entry: Entry) => void;
@@ -59,7 +60,7 @@ export class EntryModal extends React.PureComponent<Props, State> {
                 {((): JSX.Element => {
                     switch (this.state.alertState) {
                         case AlertState.None:
-                            return <EntryDialog entry={this.state.entry} editable={this.props.editable} deletable={!!this.props.initialEntry}
+                            return <EntryDialog entry={this.state.entry} editable={this.props.editable} deletable={!!this.props.initialEntry} mobile={this.props.mobile}
                                 changed={this.state.entry !== this.props.initialEntry} onChange={(key, new_value) => this.handlDialogChange(key, new_value)}
                                 onCancel={saveable => this.handleDialogCancel(saveable)} onSave={() => this.handleSave()}
                                 onSecondary={() => this.handleDialogSecondary()} />;
@@ -112,6 +113,11 @@ export class EntryModal extends React.PureComponent<Props, State> {
                 keyboard: false      // Don't close when escape pressed.
             })
             .on('hidden.bs.modal', () => this.props.onClosed());
+    }
+
+    componentDidUpdate(prev_props: Props, prev_state: State): void {
+        if (this.props.mobile && this.state.alertState !== prev_state.alertState)
+            $(document).scrollTop(0);
     }
 
     componentWillUnmount(): void {
