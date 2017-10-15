@@ -10,6 +10,8 @@ using Diary.Data;
 using Diary.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Threading.Tasks;
 
 namespace Diary
 {
@@ -55,11 +57,23 @@ namespace Diary
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(20);
                 options.Lockout.MaxFailedAccessAttempts = 5;
 
-                // Cookie settings
+                // Login/logout redirection
+                Func<CookieRedirectContext, Task> redirect_scheme_and_host_fixer = context => 
+                {
+                    if (!string.IsNullOrEmpty(Configuration["redirect_scheme_and_host"]))
+                        context.RedirectUri = Configuration["redirect_scheme_and_host"] + new Uri(context.RedirectUri).PathAndQuery;
+                    context.Response.Redirect(context.RedirectUri);
+                    return Task.CompletedTask;
+                };
                 options.Cookies.ApplicationCookie.ExpireTimeSpan = TimeSpan.FromDays(20);
                 string account_controller = (!string.IsNullOrEmpty(Configuration["url_path_prefix"]) ? "/" + Configuration["url_path_prefix"] : "") + "/Account";
                 options.Cookies.ApplicationCookie.LoginPath = account_controller + "/LogIn";
                 options.Cookies.ApplicationCookie.LogoutPath = account_controller + "/LogOut";
+                options.Cookies.ApplicationCookie.Events = new CookieAuthenticationEvents
+                {
+                    OnRedirectToLogin = redirect_scheme_and_host_fixer,
+                    OnRedirectToLogout = redirect_scheme_and_host_fixer
+                };
 
                 // User settings
                 options.User.RequireUniqueEmail = true;

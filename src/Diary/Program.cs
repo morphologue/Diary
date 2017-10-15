@@ -11,7 +11,7 @@ namespace Diary
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseStartup<Startup>()
-                .UseUrls("http://localhost:51407")
+                .UseUrls("http://0.0.0.0:51407")
                 .Build();
 
             host.Run();
