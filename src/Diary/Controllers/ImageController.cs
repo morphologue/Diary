@@ -39,7 +39,7 @@ namespace Diary.Controllers
             _imageBaseDir = Startup.Configuration["image_dir"];
             if (string.IsNullOrEmpty(_imageBaseDir))
             {
-                string home = Environment.GetEnvironmentVariable(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "LocalAppData" : "Home");
+                string home = Environment.GetEnvironmentVariable(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "LocalAppData" : "HOME");
                 _imageBaseDir = Path.Combine(home, "Diary", "images");
             }
         }

@@ -100,6 +100,12 @@ namespace Diary
 
             app.UseStaticFiles(UrlPrefix);
 
+            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            {
+                var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                context.Database.Migrate();
+            }
+
             app.UseIdentity();
 
             app.UseMvc(routes =>

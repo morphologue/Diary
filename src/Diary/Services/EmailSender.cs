@@ -34,8 +34,8 @@ namespace Diary.Services
         public static void SendLink(ApplicationUser user, string callbackUrlWrong, EmailReason reason)
         {
             // Alter the provided HTTPS URL by substituting the host name component with LinkPrefix
-            string callbackUrl = Startup.Configuration["email_link_prefix"] == null ? callbackUrlWrong
-                : Regex.Replace(callbackUrlWrong, "^https\\:\\/\\/[^\\/]*", Startup.Configuration["email_link_prefix"]);
+            string callbackUrl = Startup.Configuration["redirect_scheme_and_host"] == null ? callbackUrlWrong
+                : Regex.Replace(callbackUrlWrong, "^http\\:\\/\\/[^\\/]*", Startup.Configuration["redirect_scheme_and_host"]);
 
             string verbPhrase = reason == EmailReason.NewRegistration ? "confirm your Diary account" : "reset your Diary password";
             string subject = verbPhrase.Substring(0, 1).ToUpperInvariant() + verbPhrase.Substring(1);

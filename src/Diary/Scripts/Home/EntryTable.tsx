@@ -60,7 +60,7 @@ export class EntryTable extends React.Component<Props> {
     private sanitiseAndElipsise(body: string): string {
         const MAX_BODY_LENGTH = 200, ELIPSIS = '...';
         let sanitised = $('<div></div>').html(body).text();
-        if (!sanitised.length && body.length)
+        if (!(sanitised.trim()).length && body.length)
             // Maybe the body is just an image, for example.
             return '[Markup]';
         return (sanitised.length <= MAX_BODY_LENGTH) ? sanitised
