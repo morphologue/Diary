@@ -15,7 +15,7 @@
     @RenderSection("head", required: false)
 
     @* This goes in head because it will load in all of our CSS, and we don't want unstyled elements to be shown. *@
-    <script src="~/@(ViewBag.BundlePrefix ?? "Site").js"></script>
+    <script src="@(Startup.UrlPrefix)/@(ViewBag.BundlePrefix ?? "Site").js"></script>
 </head>
 <body>
     <div class="container@(ViewBag.Unchained ?? false ? " unchained" : "")">

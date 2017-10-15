@@ -19,6 +19,8 @@ namespace Diary
     {
         public static IConfigurationRoot Configuration { get; private set; }
 
+        public static string UrlPrefix => !string.IsNullOrEmpty(Configuration["url_path_prefix"]) ? "/" + Configuration["url_path_prefix"] : "";
+
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
@@ -65,15 +67,17 @@ namespace Diary
                     context.Response.Redirect(context.RedirectUri);
                     return Task.CompletedTask;
                 };
-                options.Cookies.ApplicationCookie.ExpireTimeSpan = TimeSpan.FromDays(20);
-                string account_controller = (!string.IsNullOrEmpty(Configuration["url_path_prefix"]) ? "/" + Configuration["url_path_prefix"] : "") + "/Account";
-                options.Cookies.ApplicationCookie.LoginPath = account_controller + "/LogIn";
-                options.Cookies.ApplicationCookie.LogoutPath = account_controller + "/LogOut";
-                options.Cookies.ApplicationCookie.Events = new CookieAuthenticationEvents
+                ((Action<CookieAuthenticationOptions>)(copt =>
                 {
-                    OnRedirectToLogin = redirect_scheme_and_host_fixer,
-                    OnRedirectToLogout = redirect_scheme_and_host_fixer
-                };
+                    copt.ExpireTimeSpan = TimeSpan.FromDays(20);
+                    copt.LoginPath = $"{UrlPrefix}/Account/LogIn";
+                    copt.LogoutPath = $"{UrlPrefix}/Account/LogOut";
+                    copt.Events = new CookieAuthenticationEvents
+                    {
+                        OnRedirectToLogin = redirect_scheme_and_host_fixer,
+                        OnRedirectToLogout = redirect_scheme_and_host_fixer
+                    };
+                }))(options.Cookies.ApplicationCookie);
 
                 // User settings
                 options.User.RequireUniqueEmail = true;
@@ -94,7 +98,7 @@ namespace Diary
             } else
                 app.UseExceptionHandler("/Home/Error");
 
-            app.UseStaticFiles();
+            app.UseStaticFiles(UrlPrefix);
 
             app.UseIdentity();
 

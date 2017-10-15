@@ -5,7 +5,6 @@ import { EntryTable } from './EntryTable';
 import { EntryModal } from './EntryModal';
 
 export const NEW_ENTRY_KEY = 0;
-const SERVER_URL = '/diary/Entry';
 
 export interface Entry {
     key: number,
@@ -40,6 +39,14 @@ interface ServerPutResponse {
 
 // This is the top-level component which controls the layout of the app: search bar above entry table.
 export class Diary extends React.PureComponent<{}, State> {
+    static getUrlPrefix(): string {
+        return $('#hidden-url-prefix').val() as string;
+    }
+
+    private static getServerURL(): string {
+        return `${Diary.getUrlPrefix()}/Entry`;
+    }
+
     private searchTextCheckerTimeout: number | undefined;
     private searchTextSentToServer: string | undefined;
 
@@ -117,7 +124,7 @@ export class Diary extends React.PureComponent<{}, State> {
         let a: JQuery.AjaxSettings;
         this.setState({
             ajaxInProgress: $.ajax({
-                url: SERVER_URL + (this.state.selectedEntry ? `?id=${this.state.selectedEntry.key}` : ''),
+                url: Diary.getServerURL() + (this.state.selectedEntry ? `?id=${this.state.selectedEntry.key}` : ''),
                 contentType: 'application/json',
                 method: 'PUT',
                 data: JSON.stringify({
@@ -166,7 +173,7 @@ export class Diary extends React.PureComponent<{}, State> {
         this.cancelInProgress();
         this.setState({
             ajaxInProgress: $.ajax({
-                url: SERVER_URL + `?id=${selected_key}`,
+                url: Diary.getServerURL() + `?id=${selected_key}`,
                 method: 'DELETE',
                 success: () => {
                     this.setState({
@@ -227,7 +234,7 @@ export class Diary extends React.PureComponent<{}, State> {
             entries: reset_entries ? [] : this.state.entries,
             searchText: this.searchTextSentToServer,
             ajaxInProgress: $.ajax({
-                url: SERVER_URL,
+                url: Diary.getServerURL(),
                 data: {
                     last_id: (reset_entries || !this.state.entries.length) ? undefined : this.state.entries[this.state.entries.length - 1].key,
                     search_text: this.searchTextSentToServer

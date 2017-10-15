@@ -2,6 +2,8 @@
 declare let window: any;
 window.jQuery = window.$ = $;  // Export jQuery globally for Bootstrap's benefit.
 import 'bootstrap';
+import 'jquery-validation';  // Used by the Razor views
+import 'jquery-validation-unobtrusive';  // Used by the Razor views
 declare let require: any;
 require('./Site.css');  // Let Webpack pull in our CSS.
 

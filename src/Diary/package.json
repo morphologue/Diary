@@ -26,6 +26,8 @@
     "bootstrap": "^3.3.7",
     "jquery": "^3.2.1",
     "jquery-ui": "^1.12.1",
+    "jquery-validation": "^1.17.0",
+    "jquery-validation-unobtrusive": "^3.2.6",
     "moment": "^2.18.1",
     "react": "^15.6.2",
     "react-dom": "^15.6.2",

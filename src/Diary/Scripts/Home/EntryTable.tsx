@@ -1,6 +1,6 @@
 ﻿import * as $ from 'jquery';
 import * as React from 'react';
-import { Entry } from './Diary';
+import { Entry, Diary } from './Diary';
 
 interface Props {
     height: number | null;
@@ -24,7 +24,7 @@ export class EntryTable extends React.Component<Props> {
                     <p className="list-group-item-text" style={{ wordWrap: 'break-word' }}>{this.sanitiseAndElipsise(e.body)}</p>
                 </a>)
             }
-            {this.props.spinning && <img src="/spinner.gif" style={{ display: 'block', margin: '0 auto', height: 80 }} />}
+            {this.props.spinning && <img src={`${Diary.getUrlPrefix()}/spinner.gif`} style={{ display: 'block', margin: '0 auto', height: 80 }} />}
             </div>
         );
     }

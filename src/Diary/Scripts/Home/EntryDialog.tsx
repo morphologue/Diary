@@ -1,6 +1,6 @@
 ﻿import * as React from 'react';
 import * as $ from 'jquery';
-import { Entry } from './Diary';
+import { Entry, Diary } from './Diary';
 import { DatePicker } from './DatePicker';
 import moment = require('moment');
 import * as ActualTinyMCE from 'tinymce';
@@ -77,12 +77,12 @@ export class EntryDialog extends React.PureComponent<Props, { locked: boolean }>
                                     <TinyMCE content={this.props.entry.body} config={{
                                         height: '20em',
                                         branding: false,
-                                        content_css: 'skins/bootstrap.min.css',
+                                        content_css: `${Diary.getUrlPrefix()}/skins/bootstrap.min.css`,
                                         plugins: 'advlist autolink link image imagetools lists charmap print hr searchreplace wordcount media nonbreaking table contextmenu emoticons paste textcolor',
                                         toolbar: 'formatselect | fontselect | fontsizeselect | emoticons | bold italic underline | bullist numlist outdent indent | image table | forecolor backcolor',
                                         menubar: 'file edit insert format table',
                                         paste_data_images: true,
-                                        images_upload_url: '/diary/Image/Upload'
+                                        images_upload_url: `${Diary.getUrlPrefix()}/Image/Upload`
                                     }} onInit={(e, editor) => this.tmceEditor = editor} onChange={(e, editor) => this.props.onChange('body', editor.getContent())} />
                                     : <div className="form-control" dangerouslySetInnerHTML={{ __html: this.props.entry.body }} style={{
                                         minHeight: '20em',
