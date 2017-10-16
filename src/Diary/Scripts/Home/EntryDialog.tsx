@@ -4,8 +4,6 @@ import { Entry, Diary } from './Diary';
 import { DatePicker } from './DatePicker';
 import moment = require('moment');
 import * as ActualTinyMCE from 'tinymce';
-import 'tinymce/tinymce';
-import 'tinymce/themes/modern';
 import TinyMCE = require('react-mce');
 
 interface Props {

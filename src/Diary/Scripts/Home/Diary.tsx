@@ -170,6 +170,8 @@ export class Diary extends React.PureComponent<{}, State> {
         });
     }
 
+    // We just use a textarea to edit HTML on mobiles because TinyMCE doesn't work. But we still run the text via a temporary TinyMCE instance
+    // in order to clean up the HTML.
     private sanitizeHTML(html: string) {
         let $sanitizer = $('<textarea id="sanitizer"></textarea>').val(html);
         $(document.body).append($sanitizer);
