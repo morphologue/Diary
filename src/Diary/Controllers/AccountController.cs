@@ -162,19 +162,19 @@ namespace Diary.Controllers
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByNameAsync(model.Email);
-                if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+                if (user != null && await _userManager.IsEmailConfirmedAsync(user))
                 {
-                    // Don't reveal that the user does not exist or is not confirmed
-                    return View("ForgotPasswordConfirmation");
+                    // Send the unlock email.
+                    string ctoken = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    string callbackUrlWrong = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = ctoken }, protocol: Request.IsHttps ? "https" : "http");
+                    EmailSender.SendLink(user, callbackUrlWrong, EmailReason.ForgottenPassword);
                 }
 
-                // Send the unlock email
-                string ctoken = await _userManager.GeneratePasswordResetTokenAsync(user);
-                string callbackUrlWrong = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = ctoken }, protocol: Request.IsHttps ? "https" : "http");
-                EmailSender.SendLink(user, callbackUrlWrong, EmailReason.ForgottenPassword);
+                // Don't show anything different for a nonexistent or unconfirmed user.
+                return View("ForgotPasswordConfirmation");
             }
 
-            // If we got this far, something failed, redisplay form
+            // If we got this far, something failed, so redisplay the form.
             return View(model);
         }
 
