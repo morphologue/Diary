@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Diary
 {
@@ -82,10 +83,13 @@ namespace Diary
                 // User settings
                 options.User.RequireUniqueEmail = true;
             });
+
+            // Hook ImageCleaner up to dependency injection.
+            services.AddSingleton<ImageCleaner>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, ImageCleaner cleaner)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
@@ -100,8 +104,15 @@ namespace Diary
 
             app.UseStaticFiles(UrlPrefix);
 
+            // Start a thread to clean up orphaned images periodically.
+            Thread cleaner_thread = new Thread(() => cleaner.ThreadMain());
+            cleaner_thread.IsBackground = true;
+            cleaner_thread.Name = "ImageCleaner";
+            cleaner_thread.Start();
+
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
+                // Apply DB migrations, if any.
                 var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 context.Database.Migrate();
             }
