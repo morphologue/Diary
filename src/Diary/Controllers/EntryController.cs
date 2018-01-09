@@ -10,6 +10,7 @@ using Diary.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using HtmlAgilityPack;
+using System.Net;
 
 namespace Diary.Controllers
 {
@@ -148,7 +149,7 @@ namespace Diary.Controllers
 
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
-            string stripped = doc.DocumentNode.InnerText.Trim();
+            string stripped = WebUtility.HtmlDecode(doc.DocumentNode.InnerText).Trim();
 
             if (html.Trim().Length > 0 && stripped.Length == 0)
                 return "[Markup]";
