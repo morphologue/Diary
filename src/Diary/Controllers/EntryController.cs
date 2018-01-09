@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Diary.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using HtmlAgilityPack;
 
 namespace Diary.Controllers
 {
@@ -76,7 +77,8 @@ namespace Diary.Controllers
                         ["title"] = e.Title,
                         ["date"] = e.Date,
                         ["location"] = e.Location,
-                        ["body"] = e.Body
+                        ["body"] = e.Body,
+                        ["textSummary"] = SanitiseAndElipsise(e.Body)
                     }),
                 ["serverEmpty"] = entries.Count <= batch_size
             });
@@ -132,6 +134,29 @@ namespace Diary.Controllers
             _ef.DiaryEntries.Remove(db_entry);
             await _ef.SaveChangesAsync();
             return Ok();
+        }
+
+        /// <summary>Strip all the HTML tags and return the leftmost 200 characters, ending with an elipsis if we would have otherwise returned more.
+        /// If the original HTML was no blank but it becomes blank after stripping the HTML tag, return "[Markup]": it's probably an image. We need to
+        /// do this on the server when GETting a batch of entries, otherwise the sanitising process causes the browser to load all embedded images in
+        /// advance, as a side-effect (ouch!).</summary>
+        /// <param name="html"></param>
+        static string SanitiseAndElipsise(string html)
+        {
+            const int MAX_LENGTH = 200;
+            const string ELIPSIS = "...";
+
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(html);
+            string stripped = doc.DocumentNode.InnerText.Trim();
+
+            if (html.Trim().Length > 0 && stripped.Length == 0)
+                return "[Markup]";
+
+            if (stripped.Length <= MAX_LENGTH)
+                return stripped;
+
+            return stripped.Substring(0, MAX_LENGTH - ELIPSIS.Length) + ELIPSIS;
         }
     }
 }

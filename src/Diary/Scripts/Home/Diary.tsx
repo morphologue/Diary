@@ -14,7 +14,8 @@ export interface Entry {
     title: string,
     date: string,
     location: string,
-    body: string
+    body: string,
+    textSummary: string
 }
 
 enum ModalState { Closed, View, Edit };

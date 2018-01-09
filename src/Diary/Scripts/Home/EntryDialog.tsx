@@ -18,18 +18,23 @@ interface Props {
     onSecondary: () => void;  // Clicked "Edit" in view mode or "Delete" in edit mode
 }
 
+interface State {
+    locked: boolean;
+    bodyBoxHeight: number;
+}
+
 // This component presents a view of the given 'entry'. If 'editable' is true and anything is changed, onChange will fire.
-export class EntryDialog extends React.PureComponent<Props, { locked: boolean }> {
+export class EntryDialog extends React.PureComponent<Props, State> {
     private tmceEditor: ActualTinyMCE.Editor;
 
     constructor(props: Props) {
         super(props);
-        this.state = { locked: false };
+        this.state = { locked: false, bodyBoxHeight: 0 };
     }
 
     render(): JSX.Element {
         let body_holder_style: React.CSSProperties = {
-            minHeight: '20em',
+            minHeight: this.state.bodyBoxHeight,
             wordWrap: 'break-word',
             overflow: 'auto',
             resize: 'vertical'
@@ -79,16 +84,18 @@ export class EntryDialog extends React.PureComponent<Props, { locked: boolean }>
                             {
                                 this.props.editable ? (this.props.mobile ? <textarea value={this.props.entry.body} className="form-control" style={body_holder_style}
                                     onChange={e => this.props.onChange('body', $(e.currentTarget).val() as string)} />
-                                        : <TinyMCE content={this.props.entry.body} config={{
-                                            height: '20em',
-                                            branding: false,
-                                            content_css: `${Diary.getUrlPrefix()}/skins/bootstrap.min.css`,
-                                            plugins: 'advlist autolink link image imagetools lists charmap print hr searchreplace wordcount media nonbreaking table contextmenu emoticons paste textcolor',
-                                            toolbar: 'formatselect | fontselect | fontsizeselect | emoticons | bold italic underline | bullist numlist outdent indent | image table | forecolor backcolor',
-                                            menubar: 'file edit insert format table',
-                                            paste_data_images: true,
-                                            images_upload_url: `${Diary.getUrlPrefix()}/Image/Upload`
-                                        }} onInit={(e, editor) => this.tmceEditor = editor} onChange={(e, editor) => this.props.onChange('body', editor.getContent())} />)
+                                    : <TinyMCE content={this.props.entry.body} config={{
+                                        height: body_holder_style.minHeight + 'px',
+                                        branding: false,
+                                        content_css: `${Diary.getUrlPrefix()}/skins/bootstrap.min.css`,
+                                        plugins: 'advlist autolink link image imagetools lists charmap print hr searchreplace wordcount media nonbreaking table contextmenu emoticons paste textcolor',
+                                        toolbar: 'formatselect | fontselect | fontsizeselect | emoticons | bold italic underline | bullist numlist outdent indent | image table | forecolor backcolor',
+                                        menubar: 'file edit insert format table',
+                                        paste_data_images: true,
+                                        images_upload_url: `${Diary.getUrlPrefix()}/Image/Upload`,
+                                        theme_advance_resizing: true,
+                                        theme_advanced_resizing_use_cookie: false
+                                    } as any} onInit={(e, editor) => this.tmceEditor = editor} onChange={(e, editor) => this.props.onChange('body', editor.getContent())} />)
                                     : <div className="form-control" dangerouslySetInnerHTML={{ __html: this.props.entry.body }} style={body_holder_style} />
                             }
                         </div>
@@ -112,10 +119,19 @@ export class EntryDialog extends React.PureComponent<Props, { locked: boolean }>
     }
 
     componentDidMount(): void {
-        // Focus in the title input after we're first created.
-        setTimeout(() => $(this.refs.title).find('input').focus(), 500);
-    }
+        setTimeout(() => {
+            // Focus in the title input after we're first created.
+            $(this.refs.title).find('input').focus();
 
+            // Make our dialog fill up the middle of the window.
+            let bottom = this.props.mobile ? ($(window).height() || 0) : ($('footer').offset() || { top: 0 }).top;
+            let modal = $('.modal-dialog');
+            this.setState({
+                bodyBoxHeight: bottom - (modal.offset() || { top: 0 }).top - (modal.outerHeight(true) || 0) - 30
+            });
+        }, 500);
+    }
+  
     private onCancel(): void {
         this.uploadImages(() => this.props.onCancel(this.props.changed && this.isEntryValid()));
     }

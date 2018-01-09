@@ -44,7 +44,8 @@ export class EntryModal extends React.PureComponent<Props, State> {
                 title: '',
                 date: yyyymmdd,
                 location: '',
-                body: ''
+                body: '',
+                textSummary: ''
             };
         }
 
@@ -131,6 +132,8 @@ export class EntryModal extends React.PureComponent<Props, State> {
     private handlDialogChange(key: keyof Entry, new_value: string): void {
         let entry_clone = $.extend({}, this.state.entry);
         entry_clone[key] = new_value;
+        if (key === 'body')
+            entry_clone.textSummary = this.sanitiseAndElipsise(entry_clone.body);
         this.setState({ entry: entry_clone });
     }
 
@@ -156,5 +159,16 @@ export class EntryModal extends React.PureComponent<Props, State> {
     private handleAlertDelete(): void {
         this.props.onDelete();
         this.initiateClose();
+    }
+
+    // This mirrors EntryController.SanitiseAndElipsise.
+    private sanitiseAndElipsise(body: string): string {
+        const MAX_BODY_LENGTH = 200, ELIPSIS = '...';
+        let sanitised = $('<div></div>').html(body).text();
+        if (!sanitised.trim().length && body.trim().length)
+            // Maybe the body is just an image, for example.
+            return '[Markup]';
+        return (sanitised.length <= MAX_BODY_LENGTH) ? sanitised
+            : sanitised.substring(0, MAX_BODY_LENGTH - ELIPSIS.length) + ELIPSIS;
     }
 }

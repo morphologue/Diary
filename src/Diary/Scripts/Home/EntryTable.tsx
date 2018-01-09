@@ -21,7 +21,7 @@ export class EntryTable extends React.Component<Props> {
             {
                 this.props.entries.map(e => <a key={e.key} className="list-group-item" href="javascript:;" onClick={() => this.props.onClick(e)}>
                     <h4 className="list-group-item-heading">{e.date}: {e.title}</h4>
-                    <p className="list-group-item-text" style={{ wordWrap: 'break-word' }}>{this.sanitiseAndElipsise(e.body)}</p>
+                    <p className="list-group-item-text" style={{ wordWrap: 'break-word' }}>{e.textSummary}</p>
                 </a>)
             }
             {this.props.spinning && <img src={`${Diary.getUrlPrefix()}/spinner.gif`} style={{ display: 'block', margin: '0 auto', height: 80 }} />}
@@ -55,15 +55,5 @@ export class EntryTable extends React.Component<Props> {
         let scrollbum = scroll_element.scrollHeight - (height_jq.scrollTop() || 0) - (height_jq.height() || 0);
         if (scrollbum < MIN_SCROLLBUM)
             this.props.onScrollHungry();
-    }
-
-    private sanitiseAndElipsise(body: string): string {
-        const MAX_BODY_LENGTH = 200, ELIPSIS = '...';
-        let sanitised = $('<div></div>').html(body).text();
-        if (!(sanitised.trim()).length && body.length)
-            // Maybe the body is just an image, for example.
-            return '[Markup]';
-        return (sanitised.length <= MAX_BODY_LENGTH) ? sanitised
-            : sanitised.substring(0, MAX_BODY_LENGTH - ELIPSIS.length) + ELIPSIS;
     }
 }
