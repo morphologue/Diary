@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Diary.Models;
 using Diary.Models.ManageViewModels;
+using Microsoft.Extensions.Configuration;
 
 namespace Diary.Controllers
 {
@@ -14,15 +15,18 @@ namespace Diary.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ILogger _logger;
+        private readonly IConfiguration _config;
 
         public ManageController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        IConfiguration config)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = loggerFactory.CreateLogger<ManageController>();
+            _config = config;
         }
 
         //
@@ -30,6 +34,7 @@ namespace Diary.Controllers
         [HttpGet]
         public IActionResult Index(ManageMessageId? message = null)
         {
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             ViewBag.StatusMessage =
                 message == ManageMessageId.ChangePasswordSuccess ? "Your password has been changed."
                 : message == ManageMessageId.Error ? "An error has occurred."
@@ -42,6 +47,7 @@ namespace Diary.Controllers
         // GET: /Manage/DeleteAccount
         public ActionResult DeleteAccount()
         {
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 
@@ -52,6 +58,7 @@ namespace Diary.Controllers
         [ActionName("DeleteAccount")]
         public async Task<ActionResult> DeleteAccountPost()
         {
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             ApplicationUser appUser = await GetCurrentUserAsync();
             IdentityResult result = await _userManager.DeleteAsync(appUser);
             if (!result.Succeeded) return View("Error");
@@ -64,6 +71,7 @@ namespace Diary.Controllers
         [HttpGet]
         public IActionResult ChangePassword()
         {
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 
@@ -73,6 +81,7 @@ namespace Diary.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             if (!ModelState.IsValid)
             {
                 return View(model);

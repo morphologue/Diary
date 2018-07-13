@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Diary.Models;
 using Diary.Models.AccountViewModels;
 using Diary.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace Diary.Controllers
 {
@@ -19,15 +20,21 @@ namespace Diary.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ILogger _logger;
+        private readonly EmailSender _emailSender;
+        private readonly IConfiguration _config;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            EmailSender emailSender,
+            IConfiguration config)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = loggerFactory.CreateLogger<AccountController>();
+            _emailSender = emailSender;
+            _config = config;
         }
 
         //
@@ -37,6 +44,7 @@ namespace Diary.Controllers
         public IActionResult Login(string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 
@@ -47,6 +55,7 @@ namespace Diary.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
@@ -81,6 +90,7 @@ namespace Diary.Controllers
         public IActionResult Register(string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 
@@ -92,6 +102,7 @@ namespace Diary.Controllers
         public async Task<IActionResult> Register(RegisterViewModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             if (ModelState.IsValid)
             {
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email, DisplayName = model.DisplayName };
@@ -101,7 +112,7 @@ namespace Diary.Controllers
                     // Send the confirmation email
                     string ctoken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     string callbackUrlWrong = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = ctoken }, protocol: Request.IsHttps ? "https" : "http");
-                    EmailSender.SendLink(user, callbackUrlWrong, EmailReason.NewRegistration);
+                    _emailSender.SendLink(user, callbackUrlWrong, EmailReason.NewRegistration);
 
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     _logger.LogInformation(3, "User created a new account with password.");
@@ -130,6 +141,7 @@ namespace Diary.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ConfirmEmail(string userId, string code)
         {
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             if (userId == null || code == null)
             {
                 return View("Error");
@@ -149,6 +161,7 @@ namespace Diary.Controllers
         [AllowAnonymous]
         public IActionResult ForgotPassword()
         {
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 
@@ -159,6 +172,7 @@ namespace Diary.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByNameAsync(model.Email);
@@ -167,7 +181,7 @@ namespace Diary.Controllers
                     // Send the unlock email.
                     string ctoken = await _userManager.GeneratePasswordResetTokenAsync(user);
                     string callbackUrlWrong = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = ctoken }, protocol: Request.IsHttps ? "https" : "http");
-                    EmailSender.SendLink(user, callbackUrlWrong, EmailReason.ForgottenPassword);
+                    _emailSender.SendLink(user, callbackUrlWrong, EmailReason.ForgottenPassword);
                 }
 
                 // Don't show anything different for a nonexistent or unconfirmed user.
@@ -184,6 +198,7 @@ namespace Diary.Controllers
         [AllowAnonymous]
         public IActionResult ForgotPasswordConfirmation()
         {
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 
@@ -193,6 +208,7 @@ namespace Diary.Controllers
         [AllowAnonymous]
         public IActionResult ResetPassword(string code = null)
         {
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return code == null ? View("Error") : View();
         }
 
@@ -203,6 +219,7 @@ namespace Diary.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -219,6 +236,7 @@ namespace Diary.Controllers
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
             AddErrors(result);
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 
@@ -228,6 +246,7 @@ namespace Diary.Controllers
         [AllowAnonymous]
         public IActionResult ResetPasswordConfirmation()
         {
+            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 

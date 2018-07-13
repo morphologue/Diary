@@ -12,6 +12,8 @@ using Diary.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using Diary.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace Diary.Controllers
 {
@@ -29,12 +31,12 @@ namespace Diary.Controllers
         readonly ApplicationDbContext _ef;
         readonly string _imageBaseDir;
 
-        public ImageController(UserManager<ApplicationUser> userManager, ILoggerFactory loggerFactory, ApplicationDbContext ef)
+        public ImageController(UserManager<ApplicationUser> userManager, ILoggerFactory loggerFactory, ApplicationDbContext ef, IConfiguration config)
         {
             _userManager = userManager;
             _logger = loggerFactory.CreateLogger<AccountController>();
             _ef = ef;
-            _imageBaseDir = ImageCleaner.GetImageBaseDir();
+            _imageBaseDir = ImageCleaner.GetImageBaseDir(config);
         }
 
         public async Task<IActionResult> Index(string id)

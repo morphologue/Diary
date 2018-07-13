@@ -1,108 +1,80 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Diary.Data;
+using Diary.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Diary.Data;
-using Diary.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Threading.Tasks;
-using System.Threading;
 
 namespace Diary
 {
     public class Startup
     {
-        public static IConfigurationRoot Configuration { get; private set; }
+        private IConfiguration Configuration { get; set; }
 
-        public static string UrlPrefix => !string.IsNullOrEmpty(Configuration["url_path_prefix"]) ? "/" + Configuration["url_path_prefix"] : "";
-
-        public Startup(IHostingEnvironment env)
+        public Startup(IConfiguration configuration)
         {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-
-            builder.AddEnvironmentVariables();
-            Configuration = builder.Build();
+            Configuration = configuration;
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddSingleton(Configuration);
+            services.AddSingleton<ImageCleaner>();
+            services.AddSingleton<EmailSender>();
+            services.AddDbContext<ApplicationDbContext>(options => options.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
-
-            // Require login by default.
-            services.AddMvc(options => options.Filters.Add(new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())));
-
-            // Set the login URL.
-            services.Configure<IdentityOptions>(options =>
+            // Cookie authentication
+            Task redirect_scheme_and_host_fixer(RedirectContext<CookieAuthenticationOptions> context)
             {
-                // Password settings
-                options.Password.RequireDigit = false;
-                options.Password.RequiredLength = 6;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = false;
-                options.Password.RequireLowercase = false;
-
-                // Lockout settings
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(20);
-                options.Lockout.MaxFailedAccessAttempts = 5;
-
-                // Login/logout redirection
-                Func<CookieRedirectContext, Task> redirect_scheme_and_host_fixer = context => 
-                {
-                    if (!string.IsNullOrEmpty(Configuration["redirect_scheme_and_host"]))
-                        context.RedirectUri = Configuration["redirect_scheme_and_host"] + new Uri(context.RedirectUri).PathAndQuery;
-                    context.Response.Redirect(context.RedirectUri);
-                    return Task.CompletedTask;
-                };
-                ((Action<CookieAuthenticationOptions>)(copt =>
+                if (!string.IsNullOrEmpty(Configuration["redirect_scheme_and_host"]))
+                    context.RedirectUri = Configuration["redirect_scheme_and_host"] + new Uri(context.RedirectUri).PathAndQuery;
+                context.Response.Redirect(context.RedirectUri);
+                return Task.CompletedTask;
+            }
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(copt =>
                 {
                     copt.ExpireTimeSpan = TimeSpan.FromDays(20);
-                    copt.LoginPath = $"{UrlPrefix}/Account/LogIn";
-                    copt.LogoutPath = $"{UrlPrefix}/Account/LogOut";
+                    copt.LoginPath = $"{Configuration.GetUrlPrefix()}/Account/LogIn";
+                    copt.LogoutPath = $"{Configuration.GetUrlPrefix()}/Account/LogOut";
                     copt.Events = new CookieAuthenticationEvents
                     {
                         OnRedirectToLogin = redirect_scheme_and_host_fixer,
                         OnRedirectToLogout = redirect_scheme_and_host_fixer
                     };
-                }))(options.Cookies.ApplicationCookie);
-
-                // User settings
-                options.User.RequireUniqueEmail = true;
-            });
-
-            // Hook ImageCleaner up to dependency injection.
-            services.AddSingleton<ImageCleaner>();
+                });
+            
+            // Require authorization by default.
+            services.AddMvc(options => options.Filters.Add(new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())))
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, ImageCleaner cleaner)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ImageCleaner cleaner)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
-
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
-                app.UseBrowserLink();
-            } else
+            else
+            {
                 app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
+            }
 
-            app.UseStaticFiles(UrlPrefix);
+            app.UseStaticFiles(Configuration.GetUrlPrefix());
 
             // Start a thread to clean up orphaned images periodically.
             Thread cleaner_thread = new Thread(() => cleaner.ThreadMain());
@@ -117,7 +89,7 @@ namespace Diary
                 context.Database.Migrate();
             }
 
-            app.UseIdentity();
+            app.UseAuthentication();
 
             app.UseMvc(routes =>
             {
