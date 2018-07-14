@@ -94,10 +94,10 @@ namespace Diary.Controllers
                 return BadRequest();
             }
 
+            string user_id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
             if (id.HasValue)
             {
                 // Update existing entry.
-                string user_id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
                 DiaryEntry db_entry = await _ef.DiaryEntries
                     .Where(e => e.EntryID == id.Value && e.ApplicationUserID == user_id)
                     .FirstOrDefaultAsync();
@@ -113,7 +113,7 @@ namespace Diary.Controllers
             else
             {
                 // Create new entry.
-                string user_id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+                put_entry.ApplicationUserID = user_id;
                 _ef.DiaryEntries.Add(put_entry);
                 await _ef.SaveChangesAsync();
                 return Created(Url.Action("Index"), Json(new { key = put_entry.EntryID }));
