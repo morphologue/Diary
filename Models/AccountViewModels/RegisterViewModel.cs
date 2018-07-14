@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Diary.Models.AccountViewModels
 {
-    public class RegisterViewModel
+    public class RegisterViewModel : ICausesLogin
     {
         [Required]
         [Display(Name = "Name")]
@@ -27,5 +27,8 @@ namespace Diary.Models.AccountViewModels
         [Display(Name = "Confirm")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
+
+        // For ICausesLogin
+        public bool RememberMe { get; } = false;
     }
 }

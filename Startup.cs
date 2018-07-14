@@ -1,22 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Diary.Data;
+using Diary.Extensions;
 using Diary.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Morphologue.IdentityWsClient;
 
 namespace Diary
 {
@@ -36,12 +35,12 @@ namespace Diary
             services.AddSingleton<ImageCleaner>();
             services.AddSingleton<EmailSender>();
             services.AddDbContext<ApplicationDbContext>(options => options.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddHttpClient<IdentityWs>(http => http.BaseAddress = new Uri(Configuration["identityws_base_url"]));
 
             // Cookie authentication
             Task redirect_scheme_and_host_fixer(RedirectContext<CookieAuthenticationOptions> context)
             {
-                if (!string.IsNullOrEmpty(Configuration["redirect_scheme_and_host"]))
-                    context.RedirectUri = Configuration["redirect_scheme_and_host"] + new Uri(context.RedirectUri).PathAndQuery;
+                context.RedirectUri = Configuration["redirect_scheme_and_host"] + new Uri(context.RedirectUri).PathAndQuery;
                 context.Response.Redirect(context.RedirectUri);
                 return Task.CompletedTask;
             }
@@ -57,9 +56,9 @@ namespace Diary
                         OnRedirectToLogout = redirect_scheme_and_host_fixer
                     };
                 });
-            
+
             // Require authorization by default.
-            services.AddMvc(options => options.Filters.Add(new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())))
+            services.AddMvc(options => options.Filters.Add(new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireClaim(ClaimTypes.Name).Build())))
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
@@ -75,6 +74,13 @@ namespace Diary
             }
 
             app.UseStaticFiles(Configuration.GetUrlPrefix());
+            app.UseAuthentication();
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "default",
+                    template: (Configuration["url_path_prefix"] ?? "") + "/{controller=Home}/{action=Index}/{id?}");
+            });
 
             // Start a thread to clean up orphaned images periodically.
             Thread cleaner_thread = new Thread(() => cleaner.ThreadMain());
@@ -88,15 +94,6 @@ namespace Diary
                 var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 context.Database.Migrate();
             }
-
-            app.UseAuthentication();
-
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: (Configuration["url_path_prefix"] ?? "") + "/{controller=Home}/{action=Index}/{id?}");
-            });
         }
     }
 }

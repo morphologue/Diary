@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Diary.Models.AccountViewModels
 {
-    public class LoginViewModel
+    public class LoginViewModel : ICausesLogin
     {
         [Required]
         [EmailAddress]

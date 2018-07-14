@@ -1,4 +1,5 @@
 ﻿using Diary.Data;
+using Diary.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -82,7 +83,8 @@ namespace Diary.Services
                         // Don't mess with files created in the last day, in case the entry just hasn't been saved yet.
                         continue;
 
-                    string required_src = $"src=\"{(_config.GetUrlPrefix() + "/Image/Index/").Substring(1)}{file.Name}\"";
+                    string prefix = _config.GetUrlPrefix();
+                    string required_src = $"src=\"{(prefix + "/Image/Index/").Substring(1)}{file.Name}\"";
                     if (!(ef.DiaryEntries.Any(d =>
                             d.ApplicationUserID == subdir.Name
                             && d.Body.Contains(required_src))))

@@ -1,12 +1,19 @@
-﻿@{
+﻿@using Diary.Extensions
+@using Microsoft.Extensions.Configuration
+
+@inject IConfiguration config
+
+@{
     // Make the container holding all the content be able to grow widely
     ViewBag.Unchained = true;
 
     // Pull in the extra CSS and Javascript which is needed for this page.
     ViewBag.BundlePrefix = "Index";
+
+    string prefix = config.GetUrlPrefix();
 }
 
 @* The guts of the view are all generated on the client via React. *@
 <div id="react-root"></div>
 
-<input id="hidden-url-prefix" type="hidden" value="@ViewBag.UrlPrefix">
+<input id="hidden-url-prefix" type="hidden" value="@prefix">

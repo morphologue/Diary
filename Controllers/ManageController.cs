@@ -5,28 +5,29 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Diary.Models;
 using Diary.Models.ManageViewModels;
-using Microsoft.Extensions.Configuration;
+using Diary.Extensions;
+using Morphologue.IdentityWsClient;
+using Diary.Data;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using System;
 
 namespace Diary.Controllers
 {
-    [Authorize]
     public class ManageController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IdentityWs _identity;
         private readonly ILogger _logger;
-        private readonly IConfiguration _config;
+        private readonly ApplicationDbContext _db;
 
         public ManageController(
-        UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager,
+        IdentityWs identity,
         ILoggerFactory loggerFactory,
-        IConfiguration config)
+        ApplicationDbContext db)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
+            _identity = identity;
             _logger = loggerFactory.CreateLogger<ManageController>();
-            _config = config;
+            _db = db;
         }
 
         //
@@ -34,7 +35,6 @@ namespace Diary.Controllers
         [HttpGet]
         public IActionResult Index(ManageMessageId? message = null)
         {
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             ViewBag.StatusMessage =
                 message == ManageMessageId.ChangePasswordSuccess ? "Your password has been changed."
                 : message == ManageMessageId.Error ? "An error has occurred."
@@ -47,7 +47,6 @@ namespace Diary.Controllers
         // GET: /Manage/DeleteAccount
         public ActionResult DeleteAccount()
         {
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 
@@ -58,11 +57,25 @@ namespace Diary.Controllers
         [ActionName("DeleteAccount")]
         public async Task<ActionResult> DeleteAccountPost()
         {
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
-            ApplicationUser appUser = await GetCurrentUserAsync();
-            IdentityResult result = await _userManager.DeleteAsync(appUser);
-            if (!result.Succeeded) return View("Error");
-            await _signInManager.SignOutAsync();
+            // Remove from the database.
+            ApplicationUser user = await _db.Users.FromClaimsAsync(User.Claims);
+            if (user == null)
+            {
+                return View("Error");
+            }
+            _db.Remove(user);
+            await _db.SaveChangesAsync();
+
+            // Remove from IdentityWs.
+            Alias alias = await _identity.GetAliasAsync(user.Email);
+            Client client = alias == null ? null : (await alias.GetClientAsync(Constants.IdentityWsClientName));
+            if (client == null)
+            {
+                return View("Error");
+            }
+            await client.DeleteAsync();
+
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login", "Account");
         }
 
@@ -71,7 +84,6 @@ namespace Diary.Controllers
         [HttpGet]
         public IActionResult ChangePassword()
         {
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 
@@ -81,52 +93,45 @@ namespace Diary.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
-            var user = await GetCurrentUserAsync();
-            if (user != null)
+            ApplicationUser user = await _db.Users.FromClaimsAsync(User.Claims);
+            if (user == null)
             {
-                var result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
-                if (result.Succeeded)
-                {
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    _logger.LogInformation(3, "User changed their password successfully.");
-                    return RedirectToAction(nameof(Index), new { Message = ManageMessageId.ChangePasswordSuccess });
-                }
-                AddErrors(result);
+                return View("Error");
+            }
+            Alias alias = await _identity.GetAliasAsync(user.Email);
+            if (alias == null)
+            {
+                return View("Error");
+            }
+
+            try
+            {
+                await alias.ChangePasswordAsync(model.OldPassword, model.NewPassword);
+                _logger.LogInformation(3, "User changed their password successfully.");
+                return RedirectToAction(nameof(Index), new { Message = ManageMessageId.ChangePasswordSuccess });
+            }
+            catch (IdentityException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
                 return View(model);
             }
-            return RedirectToAction(nameof(Index), new { Message = ManageMessageId.Error });
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Attempting to change password for {Email}", user.Email);
+                return RedirectToAction(nameof(Index), new { Message = ManageMessageId.Error });
+            }
         }
 
         #region Helpers
 
-        private void AddErrors(IdentityResult result)
-        {
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.Description);
-            }
-        }
-
         public enum ManageMessageId
         {
-            AddPhoneSuccess,
-            AddLoginSuccess,
             ChangePasswordSuccess,
-            SetTwoFactorSuccess,
-            SetPasswordSuccess,
-            RemoveLoginSuccess,
-            RemovePhoneSuccess,
             Error
-        }
-
-        private Task<ApplicationUser> GetCurrentUserAsync()
-        {
-            return _userManager.GetUserAsync(HttpContext.User);
         }
 
         #endregion

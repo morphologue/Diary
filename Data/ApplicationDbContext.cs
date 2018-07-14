@@ -4,12 +4,9 @@ using Diary.Models;
 
 namespace Diary.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
-        {
-        }
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -18,8 +15,11 @@ namespace Diary.Data
             builder.Entity<ApplicationUser>()
                 .HasMany(e => e.Entries)
                 .WithOne(e => e.ApplicationUser)
-                .HasForeignKey(e => e.ApplicationUserID);
+                .HasForeignKey(e => e.ApplicationUserID)
+                .OnDelete(DeleteBehavior.Cascade);
         }
+
+        public DbSet<ApplicationUser> Users { get; set; }
 
         public DbSet<DiaryEntry> DiaryEntries { get; set; }
     }

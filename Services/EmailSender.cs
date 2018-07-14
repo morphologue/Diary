@@ -1,8 +1,9 @@
 ﻿using Diary.Models;
-using MimeKit;
 using System.Text.RegularExpressions;
-using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
+using Morphologue.IdentityWsClient;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Diary.Services
 {
@@ -10,45 +11,36 @@ namespace Diary.Services
 
     public class EmailSender
     {
+        ILogger<EmailSender> _log;
         IConfiguration _config;
+        IdentityWs _identity;
 
-        public EmailSender(IConfiguration config)
+        public EmailSender(ILogger<EmailSender> log, IConfiguration config, IdentityWs identity)
         {
+            this._log = log;
             this._config = config;
+            this._identity = identity;
         }
 
-        public void Send(string recipient, string subject, string body, string from = null)
+        private async Task SendAsync(string recipient, string subject, string body, bool send_if_unconfirmed)
         {
-            MimeMessage msg = new MimeMessage();
-            if (from == null)
-                msg.From.Add(new MailboxAddress(_config["smtp_default_from"]));
-            else
-                msg.From.Add(new MailboxAddress(from));
-            msg.To.Add(new MailboxAddress(recipient));
-            msg.Subject = subject;
-            msg.Body = new TextPart("plain") { Text = body };
-
-            using (SmtpClient client = new SmtpClient())
+            Alias alias = await _identity.GetAliasAsync(recipient);
+            if (alias == null)
             {
-                client.Connect(_config["smtp_host"], int.Parse(_config["smtp_port"]), false);
-                if (_config["smtp_user"] != null)
-                    client.Authenticate(_config["smtp_user"], _config["smtp_password"]);
-                client.Send(msg);
-                client.Disconnect(true);
+                _log.LogError("Could not email recipient with no Alias: {recipient}", recipient);
+                return;
             }
+
+            await alias.Email(_config["email_from"], subject, body, sendIfUnconfirmed: send_if_unconfirmed);
         }
 
         /* This really should be in a view, but that's crazy hard to achieve with MVC */
-        public void SendLink(ApplicationUser user, string callbackUrlWrong, EmailReason reason)
+        public async Task SendLinkAsync(ApplicationUser user, string callbackUrl, EmailReason reason)
         {
-            // Alter the provided HTTPS URL by substituting the host name component with LinkPrefix
-            string callbackUrl = _config["redirect_scheme_and_host"] == null ? callbackUrlWrong
-                : Regex.Replace(callbackUrlWrong, "^http\\:\\/\\/[^\\/]*", _config["redirect_scheme_and_host"]);
-
             string verbPhrase = reason == EmailReason.NewRegistration ? "confirm your Diary account" : "reset your Diary password";
             string subject = verbPhrase.Substring(0, 1).ToUpperInvariant() + verbPhrase.Substring(1);
-            string body = $"Please {verbPhrase} by clicking the following link:\n\n{callbackUrl}";
-            Send(user.Email, subject, body);
+            string body = $"Please {verbPhrase} by clicking the following link:\n\n{_config["redirect_scheme_and_host"] + callbackUrl}";
+            await SendAsync(user.Email, subject, body, reason == EmailReason.NewRegistration);
         }
     }
 }

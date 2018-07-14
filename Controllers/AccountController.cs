@@ -1,40 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using Diary.Models;
 using Diary.Models.AccountViewModels;
 using Diary.Services;
-using Microsoft.Extensions.Configuration;
+using Morphologue.IdentityWsClient;
+using Diary.Extensions;
+using System.Net.Http;
+using System.Net;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using Diary.Data;
 
 namespace Diary.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IdentityWs _identity;
         private readonly ILogger _logger;
         private readonly EmailSender _emailSender;
-        private readonly IConfiguration _config;
+        private readonly ApplicationDbContext _db;
 
         public AccountController(
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
+            IdentityWs identity,
             ILoggerFactory loggerFactory,
             EmailSender emailSender,
-            IConfiguration config)
+            ApplicationDbContext db)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
+            _identity = identity;
             _logger = loggerFactory.CreateLogger<AccountController>();
             _emailSender = emailSender;
-            _config = config;
+            _db = db;
         }
 
         //
@@ -44,7 +44,6 @@ namespace Diary.Controllers
         public IActionResult Login(string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 
@@ -55,28 +54,18 @@ namespace Diary.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
-                if (result.Succeeded)
-                {
-                    _logger.LogInformation(1, "User logged in.");
-                    return RedirectToLocal(returnUrl);
-                }
-                if (result.IsLockedOut)
-                {
-                    _logger.LogWarning(2, "User account locked out.");
-                    return View("Lockout");
-                }
-                else
+                Alias alias = await _identity.GetAliasAsync(model.Email);
+                Client client = alias == null ? null : (await alias.GetClientAsync(Constants.IdentityWsClientName));
+                if (client == null)
                 {
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return View(model);
                 }
+
+                return (await DoLoginAsync(model, client)) ?? RedirectToLocal(returnUrl);
             }
 
             // If we got this far, something failed, redisplay form
@@ -90,7 +79,6 @@ namespace Diary.Controllers
         public IActionResult Register(string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 
@@ -102,23 +90,92 @@ namespace Diary.Controllers
         public async Task<IActionResult> Register(RegisterViewModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email, DisplayName = model.DisplayName };
-                var result = await _userManager.CreateAsync(user, model.Password);
-                if (result.Succeeded)
+                // Add the user in the DB.
+                ApplicationUser user = new ApplicationUser
                 {
-                    // Send the confirmation email
-                    string ctoken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    string callbackUrlWrong = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = ctoken }, protocol: Request.IsHttps ? "https" : "http");
-                    _emailSender.SendLink(user, callbackUrlWrong, EmailReason.NewRegistration);
-
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    _logger.LogInformation(3, "User created a new account with password.");
-                    return RedirectToLocal(returnUrl);
+                    Email = model.Email,
+                    DisplayName = model.DisplayName
+                };
+                try
+                {
+                    _db.Users.Add(user);
+                    await _db.SaveChangesAsync();
                 }
-                AddErrors(result);
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Attempting to create ApplicationUser {Email}", model.Email);
+                    ModelState.AddModelError(string.Empty, "The email address is not available.");
+                    return View(model);
+                }
+
+                // Add the Alias in IdentityWs.
+                Alias alias;
+                bool existing_alias;
+                try
+                {
+                    alias = await _identity.GetAliasAsync(model.Email);
+                    if (alias == null)
+                    {
+                        alias = await _identity.CreateAliasAsync(model.Email, model.Password);
+                        if (alias == null)
+                        {
+                            return View("Error");
+                        }
+                        existing_alias = false;
+                    }
+                    else
+                    {
+                        if ((await alias.GetClientAsync(Constants.IdentityWsClientName)) != null)
+                        {
+                            ModelState.AddModelError(string.Empty, "The account already exists.");
+                            return View(model);
+                        }
+                        existing_alias = true;
+                    }
+                }
+                catch (IdentityException ex)
+                {
+                    _db.Users.Remove(user);
+                    await _db.SaveChangesAsync();
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                    return View(model);
+                }
+                catch (Exception ex)
+                {
+                    _db.Users.Remove(user);
+                    await _db.SaveChangesAsync();
+                    _logger.LogError(ex, "Attempting to register new Alias {Email}", model.Email);
+                    ModelState.AddModelError(string.Empty, "An error occurred");
+                    return View(model);
+                }
+
+                // On the home strech now: add the client in IdentityWs and create login cookie.
+                Client client = await alias.CreateClientAsync(Constants.IdentityWsClientName, new Dictionary<string, string>
+                {
+                    ["ApplicationUserID"] = user.Id
+                });
+                IActionResult error_result = await DoLoginAsync(model, client, existing_alias);
+                if (error_result != null)
+                {
+                    _db.Users.Remove(user);
+                    await _db.SaveChangesAsync();
+                    await client.DeleteAsync();
+                    return error_result;
+                }
+
+                // Send the confirmation email.
+                if (!alias.IsConfirmationTokenLoaded)
+                {
+                    await alias.FetchConfirmationTokenAsync();
+                }
+                string ctoken = alias.ConfirmationToken;
+                string callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = ctoken });
+                await _emailSender.SendLinkAsync(user, callbackUrl, EmailReason.NewRegistration);
+
+                _logger.LogInformation(3, "User created a new account with password.");
+                return RedirectToLocal(returnUrl);
             }
 
             // If we got this far, something failed, redisplay form
@@ -131,7 +188,7 @@ namespace Diary.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LogOff()
         {
-            await _signInManager.SignOutAsync();
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             _logger.LogInformation(4, "User logged out.");
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
@@ -141,18 +198,23 @@ namespace Diary.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ConfirmEmail(string userId, string code)
         {
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
-            if (userId == null || code == null)
+            ApplicationUser user = await _db.Users.FindAsync(userId);
+            Alias alias = await _identity.GetAliasAsync(user?.Email ?? string.Empty);
+            if (alias == null)
             {
                 return View("Error");
             }
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
+
+            try
             {
-                return View("Error");
+                await alias.ConfirmAsync(code);
+                return View("ConfirmEmail");
             }
-            var result = await _userManager.ConfirmEmailAsync(user, code);
-            return View(result.Succeeded ? "ConfirmEmail" : "Error");
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Confirming alias {Email}", user.Email);
+            }
+            return View("Error");
         }
 
         //
@@ -161,7 +223,6 @@ namespace Diary.Controllers
         [AllowAnonymous]
         public IActionResult ForgotPassword()
         {
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 
@@ -172,17 +233,20 @@ namespace Diary.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByNameAsync(model.Email);
-                if (user != null && await _userManager.IsEmailConfirmedAsync(user))
+                Alias alias = await _identity.GetAliasAsync(model.Email);
+                Client client = alias == null ? null : (await alias.GetClientAsync(Constants.IdentityWsClientName));
+                ApplicationUser user = await _db.Users.FindAsync(client?.Data["ApplicationUserID"] ?? string.Empty);
+                if (user == null)
                 {
-                    // Send the unlock email.
-                    string ctoken = await _userManager.GeneratePasswordResetTokenAsync(user);
-                    string callbackUrlWrong = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = ctoken }, protocol: Request.IsHttps ? "https" : "http");
-                    _emailSender.SendLink(user, callbackUrlWrong, EmailReason.ForgottenPassword);
+                    return View("Error");
                 }
+
+                // Send the unlock email.
+                string ctoken = await alias.GenerateResetTokenAsync();
+                string callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = ctoken });
+                await _emailSender.SendLinkAsync(user, callbackUrl, EmailReason.ForgottenPassword);
 
                 // Don't show anything different for a nonexistent or unconfirmed user.
                 return View("ForgotPasswordConfirmation");
@@ -198,7 +262,6 @@ namespace Diary.Controllers
         [AllowAnonymous]
         public IActionResult ForgotPasswordConfirmation()
         {
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 
@@ -208,7 +271,6 @@ namespace Diary.Controllers
         [AllowAnonymous]
         public IActionResult ResetPassword(string code = null)
         {
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return code == null ? View("Error") : View();
         }
 
@@ -219,25 +281,36 @@ namespace Diary.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
-            var user = await _userManager.FindByNameAsync(model.Email);
+
+            Alias alias = await _identity.GetAliasAsync(model.Email);
+            Client client = alias == null ? null : (await alias.GetClientAsync(Constants.IdentityWsClientName));
+            ApplicationUser user = await _db.Users.FindAsync(client?.Data["ApplicationUserID"] ?? string.Empty);
             if (user == null)
             {
                 // Don't reveal that the user does not exist
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
-            var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
-            if (result.Succeeded)
+
+            try
             {
+                await alias.ChangePasswordViaResetTokenAsync(model.Code, model.Password);
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
-            AddErrors(result);
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
-            return View();
+            catch (IdentityException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Attempting to reset via token for {Email}", model.Email);
+                ModelState.AddModelError(string.Empty, "An error occurred");
+                return View(model);
+            }
         }
 
         //
@@ -246,23 +319,40 @@ namespace Diary.Controllers
         [AllowAnonymous]
         public IActionResult ResetPasswordConfirmation()
         {
-            ViewBag.UrlPrefix = _config.GetUrlPrefix();
             return View();
         }
 
         #region Helpers
 
-        private void AddErrors(IdentityResult result)
+        private async Task<IActionResult> DoLoginAsync<T>(T model, Client client, bool existing_alias = false) where T : ICausesLogin
         {
-            foreach (var error in result.Errors)
+            try
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                await client.LogIn(model.Password);
+                ClaimsPrincipal principal = new ClaimsPrincipal(new[] { new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, client.Data["ApplicationUserID"]) }) });
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, new AuthenticationProperties
+                {
+                    IsPersistent = model.RememberMe
+                });
+                _logger.LogInformation(1, "User logged in.");
+                return null;
             }
-        }
-
-        private Task<ApplicationUser> GetCurrentUserAsync()
-        {
-            return _userManager.GetUserAsync(HttpContext.User);
+            catch (IdentityException ex)
+            {
+                if (ex.StatusCode == HttpStatusCode.ServiceUnavailable)
+                {
+                    _logger.LogWarning(2, "User account locked out.");
+                    return View("Lockout");
+                }
+                ModelState.AddModelError(string.Empty, existing_alias ? "Password must match that of other applications on this server."
+                    : "Invalid login attempt.");
+                return View(model);
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Attempting to log in Alias {Email}", model.Email);
+                return View(model);
+            }
         }
 
         private IActionResult RedirectToLocal(string returnUrl)

@@ -14,6 +14,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Diary.Services;
 using Microsoft.Extensions.Configuration;
+using System.Security.Claims;
 
 namespace Diary.Controllers
 {
@@ -27,19 +28,17 @@ namespace Diary.Controllers
         };
 
         readonly ILogger _logger;
-        readonly UserManager<ApplicationUser> _userManager;
         readonly ApplicationDbContext _ef;
         readonly string _imageBaseDir;
 
-        public ImageController(UserManager<ApplicationUser> userManager, ILoggerFactory loggerFactory, ApplicationDbContext ef, IConfiguration config)
+        public ImageController(ILoggerFactory loggerFactory, ApplicationDbContext ef, IConfiguration config)
         {
-            _userManager = userManager;
             _logger = loggerFactory.CreateLogger<AccountController>();
             _ef = ef;
             _imageBaseDir = ImageCleaner.GetImageBaseDir(config);
         }
 
-        public async Task<IActionResult> Index(string id)
+        public IActionResult Index(string id)
         {
             string extension = GetAndValidateExtension(id);
             if (extension == null)
@@ -53,7 +52,12 @@ namespace Diary.Controllers
                 return NotFound();
             }
 
-            string server_path = Path.Combine(_imageBaseDir, (await _userManager.GetUserAsync(User)).Id, id);
+            string user_id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+            if (user_id == null)
+            {
+                return Unauthorized();
+            }
+            string server_path = Path.Combine(_imageBaseDir, user_id, id);
 
             try
             {
@@ -82,7 +86,12 @@ namespace Diary.Controllers
 
             // Determine the server path in a directory specific to this user and make sure the directory exists.
             string file_name = $"{Guid.NewGuid()}{extension}";
-            string dir = Path.Combine(_imageBaseDir, (await _userManager.GetUserAsync(User)).Id);
+            string user_id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+            if (user_id == null)
+            {
+                return Unauthorized();
+            }
+            string dir = Path.Combine(_imageBaseDir, user_id);
             Directory.CreateDirectory(dir);
             string server_path = Path.Combine(dir, file_name);
 

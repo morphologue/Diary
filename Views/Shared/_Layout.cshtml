@@ -1,9 +1,18 @@
-﻿<!DOCTYPE html>
+﻿@using Diary.Extensions
+@using Microsoft.Extensions.Configuration
+
+@inject IConfiguration config
+
+@{
+    string prefix = config.GetUrlPrefix();
+}
+
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="@(ViewBag.UrlPrefix)/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="@(prefix)/favicon.ico">
     @if (ViewBag.Title == null)
     {
         <title>Diary</title>
@@ -16,7 +25,7 @@
     @RenderSection("head", required: false)
 
     @* This goes in head because it will load in all of our CSS, and we don't want unstyled elements to be shown. *@
-    <script src="@(ViewBag.UrlPrefix)/@(ViewBag.BundlePrefix ?? "Site").js"></script>
+    <script src="@(prefix)/@(ViewBag.BundlePrefix ?? "Site").js"></script>
 </head>
 <body>
     <div class="container@(ViewBag.Unchained ?? false ? " unchained" : "")">

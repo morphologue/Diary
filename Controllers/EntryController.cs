@@ -5,26 +5,24 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Diary.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Identity;
 using Diary.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using HtmlAgilityPack;
 using System.Net;
+using System.Security.Claims;
 
 namespace Diary.Controllers
 {
     public class EntryController : Controller
     {
         readonly ILogger _logger;
-        readonly UserManager<ApplicationUser> _userManager;
         readonly ApplicationDbContext _ef;
 
         public object SqlFunctions { get; private set; }
 
-        public EntryController(UserManager<ApplicationUser> userManager, ILoggerFactory loggerFactory, ApplicationDbContext ef)
+        public EntryController(ILoggerFactory loggerFactory, ApplicationDbContext ef)
         {
-            _userManager = userManager;
             _logger = loggerFactory.CreateLogger<AccountController>();
             _ef = ef;
         }
@@ -38,7 +36,7 @@ namespace Diary.Controllers
                 batch_size = 100;
 
             // Construct the base query.
-            string user_id = (await _userManager.GetUserAsync(User)).Id;
+            string user_id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
             IQueryable<DiaryEntry> query = _ef.DiaryEntries.Where(e => e.ApplicationUserID == user_id);
 
             // Apply search filter if provided.
@@ -99,7 +97,7 @@ namespace Diary.Controllers
             if (id.HasValue)
             {
                 // Update existing entry.
-                string user_id = (await _userManager.GetUserAsync(User)).Id;
+                string user_id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
                 DiaryEntry db_entry = await _ef.DiaryEntries
                     .Where(e => e.EntryID == id.Value && e.ApplicationUserID == user_id)
                     .FirstOrDefaultAsync();
@@ -115,7 +113,7 @@ namespace Diary.Controllers
             else
             {
                 // Create new entry.
-                put_entry.ApplicationUserID = (await _userManager.GetUserAsync(User)).Id;
+                string user_id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
                 _ef.DiaryEntries.Add(put_entry);
                 await _ef.SaveChangesAsync();
                 return Created(Url.Action("Index"), Json(new { key = put_entry.EntryID }));
@@ -126,7 +124,7 @@ namespace Diary.Controllers
         [HttpDelete]
         public async Task<IActionResult> IndexDelete(int id)
         {
-            string user_id = (await _userManager.GetUserAsync(User)).Id;
+            string user_id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
             DiaryEntry db_entry = await _ef.DiaryEntries
                 .Where(e => e.EntryID == id && e.ApplicationUserID == user_id)
                 .FirstOrDefaultAsync();
