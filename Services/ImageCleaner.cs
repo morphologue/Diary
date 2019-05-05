@@ -52,8 +52,8 @@ namespace Diary.Services
             {
                 while (true)
                 {
-                    // Do this hourly.
-                    Thread.Sleep(TimeSpan.FromHours(1));
+                    // Do this daily.
+                    Thread.Sleep(TimeSpan.FromDays(1));
                     try
                     {
                         using (IServiceScope scope = _factory.CreateScope())
